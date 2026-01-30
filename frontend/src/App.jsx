@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import MapView from './components/MapView';
-import GeoMap from './components/GeoMap';
-import TrendCharts from './components/TrendCharts';
 import FiltersPanel from './components/FiltersPanel';
 import CandidateComparison from './components/CandidateComparison';
 import InsightsDashboard from './components/InsightsDashboard';
@@ -9,7 +7,6 @@ import { getMapData, listElections } from './services/api';
 import {
   IconBallot,
   IconBuildingColumns,
-  IconChartBar,
   IconMapPin,
   IconUsers,
 } from './components/icons';
@@ -225,16 +222,6 @@ function App() {
               <span className="sm:hidden">{language === 'en' ? 'Areas' : 'क्षेत्र'}</span>
             </button>
             <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-full font-medium transition-all cursor-not-allowed opacity-60 text-[#1e3a5f]/60 pointer-events-none"
-            >
-              <IconChartBar className="w-4 h-4" />
-              <span className="hidden sm:inline">{language === 'en' ? 'Trends' : 'प्रवृत्ति'}</span>
-              <span className="sm:hidden">{language === 'en' ? 'Trends' : 'प्रवृत्ति'}</span>
-            </button>
-            <button
               onClick={() => setActiveTab('insights')}
               className={`inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-full font-medium transition-all ${
                 activeTab === 'insights'
@@ -257,16 +244,6 @@ function App() {
               <IconUsers className="w-4 h-4" />
               <span className="hidden sm:inline">{language === 'en' ? 'Compare candidates' : 'उम्मेदवार तुलना'}</span>
               <span className="sm:hidden">{language === 'en' ? 'Compare' : 'तुलना'}</span>
-            </button>
-            <button
-              type="button"
-              disabled
-              aria-disabled="true"
-              className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-full font-medium transition-all cursor-not-allowed opacity-60 text-[#1e3a5f]/60 pointer-events-none"
-            >
-              <IconMapPin className="w-4 h-4" />
-              <span className="hidden sm:inline">{language === 'en' ? 'MAP' : 'नक्शा'}</span>
-              <span className="sm:hidden">MAP</span>
             </button>
           </div>
         </div>
@@ -328,7 +305,7 @@ function App() {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Breadcrumb Navigation */}
-          {(activeTab === 'areas' || activeTab === 'geo-map') && (
+          {activeTab === 'areas' && (
             <div className="bg-white border-b border-[#1e3a5f]/20 px-3 lg:px-4 py-2 lg:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm text-[#1e3a5f]/70">
@@ -420,32 +397,6 @@ function App() {
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {activeTab === 'geo-map' && (
-              <div className="h-full">
-                {loading ? (
-                  <div className="flex items-center justify-center h-full bg-white rounded-xl">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1e3a5f]/20 border-t-[#b91c1c] mx-auto"></div>
-                      <p className="mt-6 text-[#1e3a5f] font-medium">Loading map...</p>
-                    </div>
-                  </div>
-                ) : (
-                  <GeoMap
-                    mapData={mapData}
-                    currentLevel={filters.level}
-                    onDrillDown={handleDrillDown}
-                    language={language}
-                  />
-                )}
-              </div>
-            )}
-
-            {activeTab === 'trends' && (
-              <div className="h-full bg-white rounded-xl p-6 border border-[#1e3a5f]/10">
-                <TrendCharts />
               </div>
             )}
 
