@@ -1,0 +1,8 @@
+# Place your election CSV files here
+# 
+# Expected naming convention:
+# - election_2017.csv
+# - election_2022.csv
+# - election_2026.csv
+# 
+# Or any filename containing the year (e.g., nepal_election_2017.csv)

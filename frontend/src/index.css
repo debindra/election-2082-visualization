@@ -1,0 +1,154 @@
+/* Inter (Variable) + Noto Sans Devanagari for Nepali text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.03) 0%, #f8fafc 50%, rgba(185, 28, 28, 0.02) 100%);
+  line-height: 1.6;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Custom scrollbar — subtle slate accent */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 58, 95, 0.06);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(30, 58, 95, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 58, 95, 0.35);
+}
+
+/* Enhanced animations and transitions */
+@layer utilities {
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02];
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .pulse-once {
+    animation: pulseOnce 0.6s ease-in-out;
+  }
+  
+  .bounce-soft {
+    animation: bounceSoft 0.5s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseOnce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-2px); }
+  75% { transform: translateY(1px); }
+}
+
+/* Softer theme: slate blue #1e3a5f, muted red #b91c1c */
+@layer utilities {
+  .nepal-red {
+    color: #b91c1c;
+  }
+  .nepal-blue {
+    color: #1e3a5f;
+  }
+  .bg-nepal-red {
+    background-color: #b91c1c;
+  }
+  .bg-nepal-blue {
+    background-color: #1e3a5f;
+  }
+  
+  .text-primary {
+    color: #1e3a5f;
+  }
+  .text-secondary {
+    color: rgba(30, 58, 95, 0.75);
+  }
+  .text-muted {
+    color: rgba(30, 58, 95, 0.55);
+  }
+  
+  /* Interactive states */
+  .interactive {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  
+  .interactive:hover {
+    @apply transform scale-105;
+  }
+  
+  .interactive:active {
+    @apply transform scale-95;
+  }
+}
+
+/* Gradient backgrounds */
+@layer utilities {
+  .bg-nepal-gradient {
+    background: linear-gradient(135deg, #b91c1c 0%, #1e3a5f 100%);
+  }
+  .bg-nepal-subtle {
+    background: linear-gradient(135deg, rgba(185, 28, 28, 0.04) 0%, rgba(30, 58, 95, 0.04) 100%);
+  }
+}
+
+/* Animation for loading */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s ease-in-out infinite;
+}
