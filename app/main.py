@@ -78,13 +78,14 @@ def _match_col_or_en(
     value: str,
     extra_cols: Optional[List[str]] = None,
 ) -> pd.Series:
-    """Boolean series: row matches value in main_col, en_col, or any extra_cols (when present)."""
-    m = df[main_col].astype(str).str.contains(value, case=False, na=False)
+    """Boolean series: row matches value in main_col, en_col, or any extra_cols (when present).
+    Uses regex=False to prevent ReDoS from user-controlled input."""
+    m = df[main_col].astype(str).str.contains(value, case=False, na=False, regex=False)
     if en_col in df.columns:
-        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False)
+        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     for col in extra_cols or []:
         if col in df.columns:
-            m = m | df[col].fillna("").astype(str).str.contains(value, case=False)
+            m = m | df[col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     return m
 
 
@@ -129,6 +130,18 @@ app.add_middleware(
     allow_methods=settings.cors_allow_methods,
     allow_headers=settings.cors_allow_headers,
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
+
 
 # Include API routers
 app.include_router(map.router, prefix=API_V1_PREFIX)
@@ -215,7 +228,6 @@ async def health_check():
     return {
         "status": "healthy",
         "available_elections": available_elections,
-        "elections_dir": str(loader.elections_dir),
     }
 
 
@@ -398,7 +410,7 @@ async def get_candidates(
     if district:
         df = df[_match_col_or_en(df, "district", "district_en", district)]
     if constituency:
-        df = df[df["constituency"].astype(str).str.contains(constituency, case=False, na=False)]
+        df = df[df["constituency"].astype(str).str.contains(constituency, case=False, na=False, regex=False)]
     if province:
         df = df[_match_col_or_en(df, "province", "province_en", province, extra_cols=["province_np"])]
     if party:
@@ -473,7 +485,7 @@ async def get_district_stats(
     
     # Apply province filter if provided
     if province:
-        df = df[df["province"].str.contains(province, case=False, na=False)]
+        df = df[df["province"].str.contains(province, case=False, na=False, regex=False)]
     
     # Group by district
     district_stats = []
@@ -512,9 +524,9 @@ async def get_constituency_stats(
     
     # Apply filters
     if district:
-        df = df[df["district"].str.contains(district, case=False, na=False)]
+        df = df[df["district"].str.contains(district, case=False, na=False, regex=False)]
     if province:
-        df = df[df["province"].str.contains(province, case=False, na=False)]
+        df = df[df["province"].str.contains(province, case=False, na=False, regex=False)]
     
     # Group by constituency
     constituency_stats = []
@@ -606,11 +618,11 @@ async def compare_elections(
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    """Global exception handler."""
+    """Global exception handler. Avoids leaking internal error details to clients."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "error": str(exc)}
+        content={"detail": "Internal server error"}
     )
 
 

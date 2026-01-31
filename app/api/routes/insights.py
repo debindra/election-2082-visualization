@@ -264,13 +264,14 @@ async def get_gender_gap_insight(
 
 
 def _match_col_or_en(df, main_col: str, en_col: str, value: str, extra_cols=None):
-    """Boolean series: row matches value in main_col, en_col, or extra_cols."""
-    m = df[main_col].astype(str).str.contains(value, case=False, na=False)
+    """Boolean series: row matches value in main_col, en_col, or extra_cols.
+    Uses regex=False to prevent ReDoS from user-controlled input."""
+    m = df[main_col].astype(str).str.contains(value, case=False, na=False, regex=False)
     if en_col in df.columns:
-        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False)
+        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     for col in extra_cols or []:
         if col in df.columns:
-            m = m | df[col].fillna("").astype(str).str.contains(value, case=False)
+            m = m | df[col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     return m
 
 

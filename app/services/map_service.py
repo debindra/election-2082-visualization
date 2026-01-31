@@ -81,13 +81,14 @@ def _match_col_or_en(
     value: str,
     extra_cols: Optional[List[str]] = None,
 ) -> pd.Series:
-    """Boolean series: row matches value in main_col, en_col, or any extra_cols (when present)."""
-    m = df[main_col].astype(str).str.contains(value, case=False, na=False)
+    """Boolean series: row matches value in main_col, en_col, or any extra_cols (when present).
+    Uses regex=False to prevent ReDoS from user-controlled input."""
+    m = df[main_col].astype(str).str.contains(value, case=False, na=False, regex=False)
     if en_col in df.columns:
-        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False)
+        m = m | df[en_col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     for col in extra_cols or []:
         if col in df.columns:
-            m = m | df[col].fillna("").astype(str).str.contains(value, case=False)
+            m = m | df[col].fillna("").astype(str).str.contains(value, case=False, na=False, regex=False)
     return m
 
 
@@ -163,7 +164,9 @@ def generate_map_geojson(
         g_val = str(gender).strip().upper()
         filtered_df = filtered_df[filtered_df["gender"].fillna("").astype(str).str.upper() == g_val]
     if education_level and "education_level" in filtered_df.columns:
-        filtered_df = filtered_df[filtered_df["education_level"].str.contains(education_level, case=False, na=False)]
+        filtered_df = filtered_df[
+            filtered_df["education_level"].str.contains(education_level, case=False, na=False, regex=False)
+        ]
     
     features = []
     

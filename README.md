@@ -374,4 +374,4 @@ Election data is sourced from the [Election Commission, Nepal](https://election.
 
 ## Support
 
-For issues or questions, please open an issue on GitHub or contact **deb.katwal+electionviz@gmail.com**.
+For issues or questions, please open an issue on GitHub or contact **electionviz.np@gmail.com**.

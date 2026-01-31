@@ -334,7 +334,7 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
   const partyOption = buildPartySaturationOption();
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden overflow-y-auto">
       {/* Insights Overview — always visible */}
       <section className="mb-6" aria-labelledby="insights-overview-heading">
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-3 sm:gap-4 mb-4">

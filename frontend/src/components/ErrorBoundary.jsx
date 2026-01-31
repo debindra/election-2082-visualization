@@ -20,8 +20,8 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5" role="alert">
-          <div className="max-w-md w-full bg-white rounded-xl border border-[#1e3a5f]/20 shadow-lg p-6 text-center">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 overflow-x-hidden" role="alert">
+          <div className="max-w-md w-full bg-white rounded-xl border border-[#1e3a5f]/20 shadow-lg p-4 sm:p-6 text-center mx-2 sm:mx-4">
             <h1 className="text-xl font-semibold text-[#1e3a5f] mb-2">
               Something went wrong
             </h1>
@@ -31,7 +31,7 @@ export default class ErrorBoundary extends React.Component {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-[#b91c1c] text-white rounded-lg text-sm font-medium hover:bg-[#b91c1c]/90 transition-colors"
+              className="min-h-[44px] px-4 py-2.5 bg-[#b91c1c] text-white rounded-lg text-sm font-medium hover:bg-[#b91c1c]/90 transition-colors touch-manipulation"
             >
               Reload page
             </button>

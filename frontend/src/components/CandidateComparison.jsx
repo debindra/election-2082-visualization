@@ -236,9 +236,9 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
               {selectedCandidates.map((c, idx) => (
                 <div
                   key={`${c.candidate_id}-${c.election_year ?? ''}-${idx}`}
-                  className="inline-flex items-center gap-2 pl-3 pr-1 py-1.5 rounded-lg border border-[#1e3a5f]/20 bg-[#1e3a5f]/5 hover:bg-[#1e3a5f]/10 text-sm"
+                  className="inline-flex items-center gap-2 pl-3 pr-1 py-1.5 rounded-lg border border-[#1e3a5f]/20 bg-[#1e3a5f]/5 hover:bg-[#1e3a5f]/10 text-sm max-w-full min-w-0"
                 >
-                  <span className="font-medium text-[#1e3a5f]">{displayName(c)}</span>
+                  <span className="font-medium text-[#1e3a5f] truncate min-w-0" title={displayName(c)}>{displayName(c)}</span>
                   {(language === 'en' ? (c.party_en ?? c.party) : c.party) && (
                     <span className="text-[#1e3a5f]/70 text-xs inline-flex items-center gap-1">
                       <PartyImage partyName={language === 'en' ? (c.party_en ?? c.party) : c.party} className="w-3.5 h-3.5 shrink-0" />

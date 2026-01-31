@@ -313,65 +313,65 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
   }
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 rounded-xl overflow-hidden fade-in">
-      {/* Header — Election areas top section */}
-      <div className="bg-gradient-to-br from-[#1e3a5f] via-[#1e3a5f] to-[#0f172a] text-white shadow-lg">
-        <div className="p-3 sm:p-4 lg:p-5">
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/10 backdrop-blur border border-white/20">
-                <LevelIcon className="w-6 h-6 lg:w-8 lg:h-8 text-white/90" />
+    <div className="h-full min-h-0 flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 rounded-xl overflow-hidden fade-in">
+      {/* Header — compact on mobile, full on larger screens */}
+      <div className="flex-none bg-gradient-to-br from-[#1e3a5f] via-[#1e3a5f] to-[#0f172a] text-white shadow-lg">
+        <div className="p-2 sm:p-4 lg:p-5">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 sm:gap-4 lg:gap-6">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="flex items-center justify-center w-9 h-9 sm:w-12 sm:h-12 lg:w-14 lg:h-14 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur border border-white/20 shrink-0">
+                <LevelIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white/90" />
               </div>
-              <div>
-                <h2 className="text-xl lg:text-2xl font-bold tracking-tight">{levelInfo.label}</h2>
-                <p className="text-white/80 text-sm mt-0.5">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-xl lg:text-2xl font-bold tracking-tight truncate">{levelInfo.label}</h2>
+                <p className="text-white/80 text-xs sm:text-sm mt-0.5 truncate">
                   {levelInfo.sublabel} · {features.length} {levelInfo.sublabel.toLowerCase()}
                 </p>
                 {viewContext?.focusLine && (
-                  <p className="text-white/70 text-xs mt-1" aria-hidden="true">
+                  <p className="text-white/70 text-xs mt-0.5 sm:mt-1 hidden sm:block" aria-hidden="true">
                     {viewContext.focusLine}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Quick Stats — visible on all screens, horizontal scroll on very small */}
+            {/* Quick Stats — horizontal scroll on mobile, single compact row */}
             {stats && (
-              <div className="flex items-center gap-3 sm:gap-4 lg:gap-8 ml-0 lg:ml-4 pl-0 lg:pl-6 border-l-0 lg:border-l border-white/30 overflow-x-auto pb-1 -mb-1 scrollbar-thin sm:overflow-visible sm:pb-0 sm:mb-0">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
+              <div className="flex items-center gap-2 sm:gap-4 lg:gap-8 ml-0 lg:ml-4 pl-0 lg:pl-6 border-l-0 lg:border-l border-white/30 overflow-x-auto pb-0.5 -mb-0.5 scrollbar-thin sm:overflow-visible sm:pb-0 sm:mb-0 min-h-0">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                  <span className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
                     {stats.totalCandidates.toLocaleString()}
                   </span>
-                  <span className="text-white/80 text-sm">{labels.candidates}</span>
+                  <span className="text-white/80 text-xs sm:text-sm whitespace-nowrap">{labels.candidates}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                  <span className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
                     {stats.totalParties}
                   </span>
-                  <span className="text-white/80 text-sm">{labels.parties}</span>
+                  <span className="text-white/80 text-xs sm:text-sm whitespace-nowrap">{labels.parties}</span>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#fbbf24]">
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                  <span className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#fbbf24]">
                     {stats.totalIndependents}
                   </span>
-                  <span className="text-white/80 text-sm">
+                  <span className="text-white/80 text-xs sm:text-sm whitespace-nowrap">
                     {labels.independents}{stats.totalIndependentsPercentage > 0 && ` (${stats.totalIndependentsPercentage}%)`}
                   </span>
                 </div>
                 {stats.avgAge > 0 && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white/90">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <span className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums text-white/90">
                       {stats.avgAge.toFixed(0)}
                     </span>
-                    <span className="text-white/80 text-sm">{labels.avgAge}</span>
+                    <span className="text-white/80 text-xs sm:text-sm whitespace-nowrap">{labels.avgAge}</span>
                   </div>
                 )}
                 {stats.femalePercentage != null && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#ec4899]/90">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                    <span className="text-base sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#ec4899]/90">
                       {stats.totalFemale.toLocaleString()}
                     </span>
-                    <span className="text-white/80 text-sm">
+                    <span className="text-white/80 text-xs sm:text-sm whitespace-nowrap">
                       {labels.female} ({stats.femalePercentage}%)
                     </span>
                   </div>
@@ -382,9 +382,9 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 overscroll-behavior-contain">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+      {/* Cards Grid — takes remaining space, scrolls on mobile */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-4 overscroll-behavior-contain">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
           {features.map((feature, index) => {
             const props = feature.properties;
             const name = language === 'en'
@@ -430,8 +430,8 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {/* Card Header */}
-                <div className={`${CARD_HEADER_BG} px-4 py-3 text-white`}>
-                  <h3 className="font-semibold text-base truncate" title={name}>
+                <div className={`${CARD_HEADER_BG} px-3 py-2 sm:px-4 sm:py-3 text-white`}>
+                  <h3 className="font-semibold text-sm sm:text-base truncate" title={name}>
                     {name}
                   </h3>
                   {(() => {
@@ -455,17 +455,17 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                 </div>
 
                 {/* Card Body */}
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   {/* Hero stat */}
-                  <div className="mb-3">
-                    <div className="text-2xl font-bold text-[#1e3a5f] tabular-nums">
+                  <div className="mb-2 sm:mb-3">
+                    <div className="text-xl sm:text-2xl font-bold text-[#1e3a5f] tabular-nums">
                       {(props.total_candidates || 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-[#1e3a5f]/60">{labels.candidates}</div>
                   </div>
 
                   {/* Secondary pills */}
-                  <div className="flex flex-wrap gap-1.5 mb-3">
+                  <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-2 sm:mb-3">
                     <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#1e3a5f]/10 text-[#1e3a5f] text-xs font-medium">
                       {props.unique_parties || 0} {labels.parties}
                     </span>
@@ -487,7 +487,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                     if (!g) return null;
                     const pct = g.femalePct ?? 0;
                     return (
-                      <div className="mb-3">
+                      <div className="mb-2 sm:mb-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-[11px] text-[#1e3a5f]/60">{labels.female}</span>
                           <span className="text-[11px] font-medium text-[#ec4899]">{pct}%</span>
@@ -504,7 +504,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
                   {/* Top parties (compact) */}
                   {topParties.length > 0 && (
-                    <div className="pt-3 border-t border-[#1e3a5f]/12">
+                    <div className="pt-2 sm:pt-3 border-t border-[#1e3a5f]/12">
                       <div className="text-[11px] text-[#1e3a5f]/50 uppercase tracking-wide mb-1.5">
                         {language === 'en' ? 'Top parties' : 'शीर्ष दलहरू'}
                       </div>
@@ -529,7 +529,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                         e.stopPropagation();
                         handleDrillDown(feature);
                       }}
-                      className="mt-4 w-full py-2 px-4 bg-[#1e3a5f]/10 text-[#1e3a5f] rounded-lg font-medium text-sm hover:bg-[#1e3a5f]/20 border border-[#1e3a5f]/20 transition-all flex items-center justify-center gap-2"
+                      className="mt-3 sm:mt-4 w-full py-2 px-3 sm:px-4 bg-[#1e3a5f]/10 text-[#1e3a5f] rounded-lg font-medium text-xs sm:text-sm hover:bg-[#1e3a5f]/20 border border-[#1e3a5f]/20 transition-all flex items-center justify-center gap-2 touch-manipulation min-h-[44px]"
                     >
                       {props.drilldown_to === 'district'
                         ? (language === 'en' ? 'View districts' : 'जिल्लाहरू हेर्नुहोस्')
@@ -546,13 +546,31 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
       </div>
 
-      {/* Selected item detail panel */}
+      {/* Mobile: tap-to-close overlay when detail panel is open (panel has z-40 so it stays on top) */}
+      {selectedItem && (
+        <div
+          className="sm:hidden fixed inset-0 z-30 bg-black/40"
+          onClick={() => {
+            setSelectedItem(null);
+            setCandidateDetails(null);
+            setCandidatesError(null);
+            setCandidateListFilter({ field: '', value: '' });
+          }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Selected item detail panel — on mobile: fixed bottom sheet overlay so cards area stays full height; on sm+: inline */}
       {selectedItem && (
         <div
           ref={detailPanelRef}
-          className={`flex-none shrink-0 bg-white border-t-2 shadow-[0_-4px_16px_rgba(30,58,95,0.06)] transition-all duration-300 ${
-            candidatesJustLoaded ? 'border-[#16a34a] ring-2 ring-[#16a34a]/20' : 'border-[#1e3a5f]/20'
-          }`}
+          className={`
+            bg-white border-t-2 shadow-[0_-4px_16px_rgba(30,58,95,0.06)] transition-all duration-300
+            sm:flex-none sm:shrink-0
+            fixed sm:relative inset-x-0 bottom-0 z-40 sm:z-auto rounded-t-xl sm:rounded-none
+            max-h-[85vh] sm:max-h-none
+            ${candidatesJustLoaded ? 'border-[#16a34a] ring-2 ring-[#16a34a]/20' : 'border-[#1e3a5f]/20'}
+          `}
           aria-live="polite"
           aria-label={candidatesLoading
             ? (language === 'en' ? 'Loading candidates' : 'उम्मेदवार लोड हुँदैछ')
@@ -561,7 +579,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
               : undefined
           }
         >
-          <div className="flex items-start justify-between gap-3 sm:gap-4 p-3 sm:p-4 max-h-[50vh] sm:max-h-80 overflow-y-auto overscroll-contain">
+          <div className="flex items-start justify-between gap-2 sm:gap-4 p-3 sm:p-4 max-h-[75vh] sm:max-h-80 overflow-y-auto overscroll-contain">
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-base text-[#1e3a5f]">
                 {language === 'en'
@@ -647,7 +665,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                           {filteredCandidates.length} {language === 'en' ? 'of' : '/'} {Object.values(candidateDetails.candidates || {}).length}
                         </span>
                       </div>
-                      <div className="max-h-40 sm:max-h-52 overflow-y-auto pr-1 -mr-1">
+                      <div className="max-h-[min(40vh,12rem)] sm:max-h-52 overflow-y-auto pr-1 -mr-1">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {filteredCandidates.map((candidate, idx) => {
                           const name = language === 'en' ? (candidate.candidate_name_en ?? candidate.candidate_name ?? 'Unknown') : (candidate.candidate_name ?? 'Unknown');
@@ -742,10 +760,10 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                 setCandidatesError(null);
                 setCandidateListFilter({ field: '', value: '' });
               }}
-              className="p-2 hover:bg-[#1e3a5f]/10 rounded-full shrink-0 text-[#1e3a5f]/80 hover:text-[#b91c1c]"
-              aria-label="Close"
+              className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center hover:bg-[#1e3a5f]/10 rounded-full shrink-0 text-[#1e3a5f]/80 hover:text-[#b91c1c] touch-manipulation"
+              aria-label={language === 'en' ? 'Close' : 'बन्द गर्नुहोस्'}
             >
-              <IconClose className="w-4 h-4" />
+              <IconClose className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

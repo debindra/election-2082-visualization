@@ -190,7 +190,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-dvh flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5">
+    <div className="min-h-screen min-h-dvh flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 overflow-x-hidden">
       {/* Header — theme: slate blue #1e3a5f, muted red #b91c1c */}
       <header className="bg-white/95 backdrop-blur border-b-2 border-[#1e3a5f] shadow-sm">
         <div className="bg-gradient-to-r from-[#b91c1c]/5 via-transparent to-[#1e3a5f]/5">
@@ -199,9 +199,8 @@ function App() {
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <img
                   src="/Flag_of_Nepal.png"
-                  alt=""
+                  alt="Nepal"
                   className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 drop-shadow-sm"
-                  aria-hidden
                 />
                 <div className="min-w-0 flex-1">
                   <h1 className="text-base sm:text-xl lg:text-2xl font-semibold tracking-tight text-[#1e3a5f] truncate">
@@ -307,7 +306,7 @@ function App() {
               document.getElementById('filters-sidebar').classList.toggle('-translate-x-full');
               document.getElementById('mobile-overlay').classList.toggle('hidden');
             }}
-            className="lg:hidden fixed top-[4.5rem] left-3 sm:left-4 z-50 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-[#1e3a5f] text-white rounded-full shadow-lg hover:bg-[#1e3a5f]/90 active:scale-95 transition-all touch-manipulation"
+            className="lg:hidden fixed top-[4.5rem] left-[max(0.75rem,env(safe-area-inset-left))] sm:left-4 z-50 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center bg-[#1e3a5f] text-white rounded-full shadow-lg hover:bg-[#1e3a5f]/90 active:scale-95 transition-all touch-manipulation"
             aria-label={language === 'en' ? 'Toggle area filters' : 'क्षेत्र फिल्टर खोल्नुहोस्'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,11 +329,11 @@ function App() {
           </button>
         )}
 
-        {/* Sidebar with Filters — only for Election areas; user can hide on desktop for more map space */}
+        {/* Sidebar with Filters — only for Election areas. On mobile the sidebar is fixed/overlay so the wrapper must not take layout space (w-0); on lg+ it reserves width when visible. */}
         {activeTab === 'areas' && (
           <div
-            className={`flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out ${
-              filtersVisible ? 'w-[min(85vw,20rem)] lg:w-80' : 'w-0 min-w-0'
+            className={`flex-shrink-0 overflow-hidden transition-[width] duration-300 ease-out w-0 min-w-0 ${
+              filtersVisible ? 'lg:w-80' : ''
             }`}
           >
             <aside
@@ -394,23 +393,24 @@ function App() {
         <main className="flex-1 flex flex-col overflow-hidden min-w-0 transition-[flex-basis] duration-300 ease-out">
           {/* Breadcrumb Navigation */}
           {activeTab === 'areas' && (
-            <div className="bg-white border-b border-[#1e3a5f]/20 px-2 sm:px-3 lg:px-4 py-2 lg:py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
+            <div className="flex-none bg-white border-b border-[#1e3a5f]/20 px-2 sm:px-3 lg:px-4 py-2 lg:py-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 min-h-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
                 <span className="text-sm text-[#1e3a5f]/70">
                   <IconMapPin className="w-4 h-4" />
                 </span>
                 {breadcrumb.map((item, index) => (
                   <React.Fragment key={index}>
-                    {index > 0 && <span className="text-[#1e3a5f]/40">›</span>}
+                    {index > 0 && <span className="text-[#1e3a5f]/40 shrink-0">›</span>}
                     <button
                       onClick={() => handleBreadcrumbClick(index)}
-                      className={`px-2 lg:px-3 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all ${
+                      className={`max-w-[100px] sm:max-w-[140px] lg:max-w-[180px] truncate px-2 lg:px-3 py-1 lg:py-1.5 rounded-full text-xs lg:text-sm font-medium transition-all text-left ${
                         index === breadcrumb.length - 1
                           ? 'bg-[#b91c1c] text-white shadow-sm'
                           : 'text-[#1e3a5f]/80 hover:bg-[#1e3a5f]/10'
                       }`}
+                      title={item.name}
                     >
-                      {item.name.length > 15 ? item.name.substring(0, 15) + '...' : item.name}
+                      {item.name}
                     </button>
                   </React.Fragment>
                 ))}
@@ -462,7 +462,7 @@ function App() {
           {/* Tab Content */}
           <div className="flex-1 overflow-hidden p-2 sm:p-3 lg:p-4 min-h-0" aria-label={getViewContext(activeTab, language)?.headline ?? (language === 'en' ? 'Main content' : 'मुख्य सामग्री')}>
             {activeTab === 'areas' && (
-              <div className="h-full" aria-label={language === 'en' ? 'Election areas map' : 'निर्वाचन क्षेत्र नक्शा'}>
+              <div className="h-full min-h-0 flex flex-col" aria-label={language === 'en' ? 'Election areas map' : 'निर्वाचन क्षेत्र नक्शा'}>
                 {loading ? (
                   <div className="flex items-center justify-center h-full bg-white rounded-xl">
                     <div className="text-center">

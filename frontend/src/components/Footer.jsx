@@ -19,7 +19,7 @@ export default function Footer({ language, onLegalLinkClick }) {
   ];
 
   return (
-    <footer className="border-t border-[#1e3a5f]/20 bg-white/95 px-4 py-3 text-center text-xs text-[#1e3a5f]/80" role="contentinfo">
+    <footer className="border-t border-[#1e3a5f]/20 bg-white/95 px-3 sm:px-4 py-3 sm:py-4 text-center text-xs text-[#1e3a5f]/80" role="contentinfo">
       <p className="mb-2 max-w-2xl mx-auto">
         {disclaimerShort}
         {' '}
@@ -34,13 +34,13 @@ export default function Footer({ language, onLegalLinkClick }) {
       </p>
       <p className="mb-2">
         <a
-          href="mailto:deb.katwal+electionviz@gmail.com"
+          href="mailto:electionviz.np@gmail.com"
           className="text-[#1e3a5f]/80 hover:text-[#b91c1c] underline hover:no-underline"
         >
-          {isNe ? 'सम्पर्क' : 'Contact'}: deb.katwal+electionviz@gmail.com
+          {isNe ? 'सम्पर्क' : 'Contact'}: electionviz.np@gmail.com
         </a>
       </p>
-      <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1" aria-label={isNe ? 'कानूनी र नीति लिंक' : 'Legal & policy links'}>
+      <nav className="flex flex-wrap justify-center gap-x-3 sm:gap-x-4 gap-y-2" aria-label={isNe ? 'कानूनी र नीति लिंक' : 'Legal & policy links'}>
         {links.map(({ hash, en, ne }) => (
           <a
             key={hash}

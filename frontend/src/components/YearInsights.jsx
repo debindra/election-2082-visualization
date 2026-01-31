@@ -496,7 +496,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
   const composite = data?.composite_metrics;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
       <div className="flex flex-wrap items-end gap-2 sm:gap-3 mb-4">
         <div className="w-full sm:w-auto min-w-0 sm:min-w-[120px]">
           <label className="block text-xs text-[#1e3a5f]/70 mb-1">Province (state)</label>

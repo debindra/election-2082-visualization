@@ -46,14 +46,14 @@ export default function LegalPage({ pageKey, language, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-white" aria-modal="true" role="dialog" aria-labelledby="legal-title">
-      <div className="flex items-center justify-between border-b border-[#1e3a5f]/20 px-4 py-3 bg-[#1e3a5f]/5">
-        <h1 id="legal-title" className="text-lg font-semibold text-[#1e3a5f]">
+      <div className="flex items-center justify-between gap-3 border-b border-[#1e3a5f]/20 px-3 sm:px-4 py-3 bg-[#1e3a5f]/5 min-h-[44px]">
+        <h1 id="legal-title" className="text-base sm:text-lg font-semibold text-[#1e3a5f] truncate min-w-0 flex-1">
           {content.title}
         </h1>
         <button
           type="button"
           onClick={onClose}
-          className="p-2 rounded-lg text-[#1e3a5f]/80 hover:bg-[#1e3a5f]/10 transition-colors"
+          className="shrink-0 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-[#1e3a5f]/80 hover:bg-[#1e3a5f]/10 transition-colors touch-manipulation"
           aria-label={language === 'en' ? 'Close' : 'बन्द गर्नुहोस्'}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
