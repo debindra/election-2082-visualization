@@ -4,6 +4,18 @@ Utility functions for computing composite indices.
 from typing import Dict, List
 import pandas as pd
 
+def _exclude_independent_parties(party_series: pd.Series) -> pd.Series:
+    """Return party series with स्वतन्त्र/Independent rows excluded (for unique_parties count)."""
+    if party_series is None or len(party_series) == 0:
+        return party_series
+    s = party_series.astype(str).str.strip()
+    lower = s.str.lower()
+    mask = ~(
+        s.isin(["स्वतन्त्र", "स्वतंत्र"])
+        | lower.isin(["independent", "independent candidate", "independent (no party)"])
+    )
+    return party_series[mask]
+
 
 def aggregate_metrics_by_geography(
     df: pd.DataFrame,
@@ -39,18 +51,27 @@ def aggregate_metrics_by_geography(
             metrics["candidate_ids"] = geo_df["candidate_id"].astype(str).tolist()
         
         # Party distribution
+        # unique_parties excludes स्वतन्त्र/Independent so parties + independents = total_candidates
         if "party" in geo_df.columns:
-            metrics["unique_parties"] = geo_df["party"].nunique()
+            parties_excl_indep = _exclude_independent_parties(geo_df["party"])
+            metrics["unique_parties"] = int(parties_excl_indep.nunique()) if len(parties_excl_indep) > 0 else 0
             metrics["party_distribution"] = geo_df["party"].value_counts().to_dict()
         
-        # Independent candidates
+        # Independent candidates (from is_independent or party=स्वतन्त्र)
         if "is_independent" in geo_df.columns:
             ind_sum = geo_df["is_independent"].fillna(False).astype(bool).sum()
-            metrics["independent_count"] = int(ind_sum)
-            n = len(geo_df)
-            metrics["independent_percentage"] = round(
-                (ind_sum / n * 100), 2
-            ) if n > 0 else 0.0
+        elif "party" in geo_df.columns:
+            party_str = geo_df["party"].astype(str).str.strip()
+            party_lower = party_str.str.lower()
+            ind_sum = (
+                party_str.isin(["स्वतन्त्र", "स्वतंत्र"])
+                | party_lower.isin(["independent", "independent candidate", "independent (no party)"])
+            ).sum()
+        else:
+            ind_sum = 0
+        metrics["independent_count"] = int(ind_sum)
+        n = len(geo_df)
+        metrics["independent_percentage"] = round((ind_sum / n * 100), 2) if n > 0 else 0.0
         
         # Age statistics
         if "age" in geo_df.columns:
