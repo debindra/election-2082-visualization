@@ -506,7 +506,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
               setProvince(e.target.value || null);
               setDistrict(null);
             }}
-            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
+            className="w-full sm:w-auto min-w-0 pl-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.provinces || []).map((p) => (
@@ -519,7 +519,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
           <select
             value={district ?? ''}
             onChange={(e) => setDistrict(e.target.value || null)}
-            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
+            className="w-full sm:w-auto min-w-0 pl-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.districts || []).map((d) => (
@@ -532,7 +532,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
           <select
             value={party ?? ''}
             onChange={(e) => setParty(e.target.value || null)}
-            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
+            className="w-full sm:w-auto min-w-0 pl-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.parties || []).map((p) => (
@@ -545,7 +545,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
           <select
             value={gender ?? ''}
             onChange={(e) => setGender(e.target.value || null)}
-            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
+            className="w-full sm:w-auto min-w-0 pl-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.genders || ['M', 'F']).map((g) => (

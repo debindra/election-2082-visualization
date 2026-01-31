@@ -633,7 +633,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                         <select
                           value={candidateListFilter.field}
                           onChange={(e) => setCandidateListFilter({ field: e.target.value, value: '' })}
-                          className="text-xs border border-[#1e3a5f]/20 rounded-md px-2.5 py-1.5 bg-[#1e3a5f]/5 text-[#1e3a5f] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40"
+                          className="text-xs border border-[#1e3a5f]/20 rounded-md pl-2.5 pr-10 py-1.5 bg-[#1e3a5f]/5 text-[#1e3a5f] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40"
                         >
                           <option value="">{language === 'en' ? 'Filter by' : 'फिल्टर'}</option>
                           {CANDIDATE_FILTER_FIELDS.map((f) => (
@@ -645,7 +645,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                             <select
                               value={candidateListFilter.value}
                               onChange={(e) => setCandidateListFilter((prev) => ({ ...prev, value: e.target.value }))}
-                              className="text-xs border border-[#1e3a5f]/20 rounded-md px-2.5 py-1.5 bg-white text-[#1e3a5f] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 min-w-[100px]"
+                              className="text-xs border border-[#1e3a5f]/20 rounded-md pl-2.5 pr-10 py-1.5 bg-white text-[#1e3a5f] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]/40 min-w-[100px]"
                             >
                               <option value="">All</option>
                               {(filterOptionsByField[candidateListFilter.field] || []).map((opt) => (

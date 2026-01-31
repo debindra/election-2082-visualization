@@ -30,6 +30,18 @@ body {
   min-height: 100dvh;
 }
 
+/* All selects: hide native arrow and add spacing so dropdown arrow never touches the edge */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e3a5f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
 /* Custom scrollbar — subtle slate accent */
 ::-webkit-scrollbar {
   width: 8px;

@@ -192,7 +192,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
             value={localFilters.province || ''}
             onChange={(e) => handleChange('province', e.target.value || null)}
             disabled={!localFilters.electionYear || filterOptions.provinces.length === 0}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
           >
             <option value="">All Provinces</option>
             {filterOptions.provinces.map((province) => (
@@ -215,7 +215,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
             value={localFilters.district || ''}
             onChange={(e) => handleChange('district', e.target.value || null)}
             disabled={!localFilters.electionYear || filterOptions.districts.length === 0}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
           >
             <option value="">All Districts</option>
             {filterOptions.districts.map((district) => (
@@ -238,7 +238,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
             value={localFilters.party || ''}
             onChange={(e) => handleChange('party', e.target.value || null)}
             disabled={!localFilters.electionYear || filterOptions.parties.length === 0}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
           >
             <option value="">All Parties</option>
             {filterOptions.parties.map((party) => (
@@ -263,7 +263,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
               const value = e.target.value === '' ? null : e.target.value === 'true';
               handleChange('independent', value);
             }}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white text-sm"
           >
             <option value="">All Candidates</option>
             <option value="true">Independent Only</option>
@@ -287,7 +287,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
             value={localFilters.gender || ''}
             onChange={(e) => handleChange('gender', e.target.value || null)}
             disabled={!localFilters.electionYear}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
           >
             <option value="">All Genders</option>
             {filterOptions.genders.length > 0 ? (
@@ -315,7 +315,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
             value={localFilters.educationLevel || ''}
             onChange={(e) => handleChange('educationLevel', e.target.value || null)}
             disabled={!localFilters.electionYear || filterOptions.education_levels.length === 0}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white disabled:bg-[#1e3a5f]/5 disabled:cursor-not-allowed text-sm"
           >
             <option value="">All Education Levels</option>
             {filterOptions.education_levels.map((level) => (
