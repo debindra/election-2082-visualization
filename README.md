@@ -364,7 +364,9 @@ The system includes 10 comprehensive analytics modules:
 
 ## License
 
-[Specify your license here]
+MIT License. See [LICENSE](LICENSE) in the project root.
+
+Election data is sourced from the [Election Commission, Nepal](https://election.gov.np/); map boundaries from [geoJSON-Nepal](https://github.com/mesaugat/geoJSON-Nepal). See [DATA_GOVERNANCE.md](DATA_GOVERNANCE.md) and the in-app **Data sources** page for attribution and methodology.
 
 ## Contributing
 
@@ -372,4 +374,4 @@ The system includes 10 comprehensive analytics modules:
 
 ## Support
 
-For issues or questions, please [create an issue] or contact [your contact info].
+For issues or questions, please open an issue on GitHub or contact **deb.katwal+electionviz@gmail.com**.

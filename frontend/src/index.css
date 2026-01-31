@@ -13,11 +13,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, rgba(30, 58, 95, 0.03) 0%, #f8fafc 50%, rgba(185, 28, 28, 0.02) 100%);
   line-height: 1.6;
+  /* Mobile: safe-area for notch/home indicator */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  min-height: 100%;
 }
 
 #root {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Custom scrollbar — subtle slate accent */
@@ -38,6 +42,17 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(30, 58, 95, 0.35);
+}
+
+/* Hide scrollbar on mobile for horizontal stat strip but keep scroll */
+@media (max-width: 639px) {
+  .scrollbar-thin {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Enhanced animations and transitions */

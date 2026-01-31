@@ -156,7 +156,7 @@ const GeoMap = ({
       <div className="h-full flex items-center justify-center bg-[#1e3a5f]/5 rounded-xl border border-[#1e3a5f]/20">
         <div className="text-center text-[#1e3a5f]/70">
           <p className="text-lg font-medium">
-            {language === 'en' ? 'Select an election year and level to view the map' : 'नक्शा हेर्न निर्वाचन वर्ष र स्तर छान्नुहोस्'}
+            {language === 'en' ? 'Select a level to view the map' : 'नक्शा हेर्न स्तर छान्नुहोस्'}
           </p>
         </div>
       </div>
@@ -172,7 +172,7 @@ const GeoMap = ({
         {' · '}
         {mapData.features.length} {language === 'en' ? 'areas' : 'क्षेत्र'}
       </div>
-      <div ref={containerRef} className="flex-1 min-h-[400px]" />
+      <div ref={containerRef} className="flex-1 min-h-[280px] sm:min-h-[350px] lg:min-h-[400px]" />
     </div>
   );
 };

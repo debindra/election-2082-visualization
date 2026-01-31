@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { listElections, getFilterOptions, getYearInsights } from '../services/api';
+import { getFilterOptions, getYearInsights } from '../services/api';
+
+const ELECTION_YEAR = 2082;
 
 const CHART_COLORS = ['#1e3a5f', '#b91c1c', '#0d9488', '#f59e0b', '#6366f1', '#ec4899'];
 
@@ -178,8 +180,7 @@ const COMPOSITE_INDICATOR_META = {
 };
 
 const YearInsights = ({ electionYear: propYear, province: propProvince, district: propDistrict, party: propParty, gender: propGender, language = 'ne' }) => {
-  const [availableElections, setAvailableElections] = useState([]);
-  const [year, setYear] = useState(propYear ?? null);
+  const [year, setYear] = useState(propYear ?? ELECTION_YEAR);
   const [province, setProvince] = useState(propProvince ?? null);
   const [district, setDistrict] = useState(propDistrict ?? null);
   const [party, setParty] = useState(propParty ?? null);
@@ -189,21 +190,6 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [maximizedCard, setMaximizedCard] = useState(null);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const elections = await listElections();
-        setAvailableElections(elections);
-        if (elections.length > 0 && year === null && propYear == null) {
-          setYear(elections[elections.length - 1]);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    load();
-  }, []);
 
   useEffect(() => {
     if (propYear !== undefined) setYear(propYear);
@@ -249,13 +235,6 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
     return () => window.removeEventListener('keydown', onEscape);
   }, [maximizedCard]);
 
-  if (!year) {
-    return (
-      <div className="flex items-center justify-center text-[#1e3a5f]/70 py-8">
-        Select an election year to view year insights.
-      </div>
-    );
-  }
 
   // 1. Age Demographics — horizontal bar
   const ageOption = data?.age_demographics?.bands?.length
@@ -271,11 +250,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
         },
         tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
         grid: { left: 60, right: 40, top: 55, bottom: 30 },
-        xAxis: { type: 'value', name: 'Count' },
+        xAxis: { type: 'value', name: 'Count', splitLine: { show: false } },
         yAxis: {
           type: 'category',
           data: data.age_demographics.bands.map((b) => b.band),
           axisLabel: { fontSize: 11 },
+          splitLine: { show: false },
         },
         series: [
           {
@@ -340,11 +320,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             },
           },
           grid: { left: 120, right: 60, top: 70, bottom: 30 },
-          xAxis: { type: 'value', name: 'Female %', min: 0, max: 100 },
+          xAxis: { type: 'value', name: 'Female %', min: 0, max: 100, splitLine: { show: false } },
           yAxis: {
             type: 'category',
             data: parties.map((p) => (p.party.length > 18 ? p.party.slice(0, 18) + '…' : p.party)),
             axisLabel: { fontSize: 10 },
+            splitLine: { show: false },
           },
           series: [
             {
@@ -383,8 +364,9 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             d.level.length > 12 ? d.level.slice(0, 12) + '…' : d.level
           ),
           axisLabel: { rotate: 35, fontSize: 10 },
+          splitLine: { show: false },
         },
-        yAxis: { type: 'value', name: 'Count' },
+        yAxis: { type: 'value', name: 'Count', splitLine: { show: false } },
         series: [
           {
             type: 'bar',
@@ -418,11 +400,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             },
           },
           grid: { left: 120, right: 60, top: 70, bottom: 30 },
-          xAxis: { type: 'value', name: 'Avg age (yrs)', min: 25, max: 75 },
+          xAxis: { type: 'value', name: 'Avg age (yrs)', min: 25, max: 75, splitLine: { show: false } },
           yAxis: {
             type: 'category',
             data: parties.map((p) => (p.party.length > 18 ? p.party.slice(0, 18) + '…' : p.party)),
             axisLabel: { fontSize: 10 },
+            splitLine: { show: false },
           },
           series: [
             {
@@ -490,13 +473,14 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
           },
         },
         grid: { left: 100, right: 30, top: 65, bottom: 30 },
-        xAxis: { type: 'value', name: 'Candidates' },
+        xAxis: { type: 'value', name: 'Candidates', splitLine: { show: false } },
         yAxis: {
           type: 'category',
           data: data.symbol_recognition.symbols.map((s) =>
             s.symbol.length > 15 ? s.symbol.slice(0, 15) + '…' : s.symbol
           ),
           axisLabel: { fontSize: 10 },
+          splitLine: { show: false },
         },
         series: [
           {
@@ -513,21 +497,8 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex flex-wrap items-end gap-3 mb-4">
-        <div>
-          <label className="block text-xs text-[#1e3a5f]/70 mb-1">Election year</label>
-          <select
-            value={year ?? ''}
-            onChange={(e) => setYear(Number(e.target.value) || null)}
-            className="px-2 py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]"
-          >
-            <option value="">Select year</option>
-            {availableElections.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
-        </div>
-        <div>
+      <div className="flex flex-wrap items-end gap-2 sm:gap-3 mb-4">
+        <div className="w-full sm:w-auto min-w-0 sm:min-w-[120px]">
           <label className="block text-xs text-[#1e3a5f]/70 mb-1">Province (state)</label>
           <select
             value={province ?? ''}
@@ -535,7 +506,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
               setProvince(e.target.value || null);
               setDistrict(null);
             }}
-            className="px-2 py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] min-w-[140px]"
+            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.provinces || []).map((p) => (
@@ -543,12 +514,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             ))}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto min-w-0 sm:min-w-[120px]">
           <label className="block text-xs text-[#1e3a5f]/70 mb-1">District</label>
           <select
             value={district ?? ''}
             onChange={(e) => setDistrict(e.target.value || null)}
-            className="px-2 py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] min-w-[140px]"
+            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.districts || []).map((d) => (
@@ -556,12 +527,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             ))}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto min-w-0 sm:min-w-[140px]">
           <label className="block text-xs text-[#1e3a5f]/70 mb-1">Party</label>
           <select
             value={party ?? ''}
             onChange={(e) => setParty(e.target.value || null)}
-            className="px-2 py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] min-w-[180px]"
+            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.parties || []).map((p) => (
@@ -569,12 +540,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             ))}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto min-w-0 sm:min-w-[100px]">
           <label className="block text-xs text-[#1e3a5f]/70 mb-1">Gender</label>
           <select
             value={gender ?? ''}
             onChange={(e) => setGender(e.target.value || null)}
-            className="px-2 py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] min-w-[120px]"
+            className="w-full sm:w-auto min-w-0 px-2 py-2 sm:py-1.5 border border-[#1e3a5f]/25 rounded-md text-sm text-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f] touch-manipulation"
           >
             <option value="">All</option>
             {(filterOptions.genders || ['M', 'F']).map((g) => (
@@ -594,7 +565,10 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
 
       {!loading && data && (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-auto">
+          <p className="text-xs text-[#1e3a5f]/70 mb-2 font-medium" aria-hidden="true">
+            Main story: Party vs age and gender power insights, then demographics and representation.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 overflow-x-hidden min-w-0">
             {CHART_PRIORITY_ORDER.map((key) => {
               const option = key === 'partyAge' ? partyAgeOption : key === 'partyGender' ? partyGenderOption : key === 'age' ? ageOption : key === 'gender' ? genderOption : key === 'local' ? localOption : key === 'education' ? educationOption : symbolOption;
               if (!option) return null;
@@ -602,12 +576,12 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
               return (
                 <div
                   key={key}
-                  className={`bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-3 relative ${isWide ? 'lg:col-span-2' : ''}`}
+                  className={`bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-3 relative min-w-0 ${isWide ? 'lg:col-span-2' : ''}`}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setMaximizedCard(CARD_KEYS[key])}
-                    className="absolute top-2 right-2 z-10 p-1.5 rounded-lg text-[#1e3a5f]/70 hover:text-[#1e3a5f] hover:bg-[#1e3a5f]/10 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setMaximizedCard(CARD_KEYS[key])}
+                  className="absolute top-2 right-2 z-10 p-1.5 rounded-lg text-[#1e3a5f]/70 hover:text-[#1e3a5f] hover:bg-[#1e3a5f]/10 transition-colors"
                   title="Maximize full screen"
                   aria-label="Maximize full screen"
                 >
@@ -615,7 +589,9 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
                 </button>
-                <ReactECharts option={option} style={{ height: isWide ? 320 : 280 }} />
+                <div role="img" aria-label={CARD_TITLES[key] || key} className="min-w-0 overflow-hidden">
+                  <ReactECharts option={option} style={{ height: isWide ? 'min(320px, 45vh)' : 'min(280px, 40vh)', width: '100%' }} className="min-h-[220px]" />
+                </div>
               </div>
             );
             })}
@@ -628,14 +604,14 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
               aria-modal="true"
               aria-label="Year insight chart full screen"
             >
-              <div className="flex items-center justify-between p-3 border-b border-white/20 bg-[#1e3a5f]/90">
-                <span className="text-white font-medium">
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b border-white/20 bg-[#1e3a5f]/90 gap-2 min-h-[44px]">
+                <span className="text-white font-medium truncate text-sm sm:text-base">
                   {CARD_TITLES[maximizedCard] || maximizedCard}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMaximizedCard(null)}
-                  className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                  className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors touch-manipulation"
                   title="Close full screen"
                   aria-label="Close full screen"
                 >
@@ -673,38 +649,43 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
           )}
 
           {composite && (
-            <div className="mt-4 bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-4">
-              <h3 className="text-sm font-semibold text-[#1e3a5f] mb-3">8. High-Value Composite Metrics (For Smart Voters)</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-3">
+            <div className="mt-4 bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-4" role="region" aria-labelledby="composite-metrics-heading">
+              <h3 id="composite-metrics-heading" className="text-sm font-semibold text-[#1e3a5f] mb-1">How inclusive was this election?</h3>
+              <p className="text-xs text-[#1e3a5f]/70 mb-3">Key metrics: female and youth representation, local roots, education, gender parity.</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
                 {[
-                  { key: 'winner_count', label: 'Winners', value: composite.winner_count, suffix: '', className: 'bg-[#b91c1c]/10 text-[#b91c1c]', labelClass: 'text-[#b91c1c]/80' },
                   { key: 'female_representation_percentage', label: 'Female Representation', value: composite.female_representation_percentage, suffix: '%', className: 'bg-[#ec4899]/15 text-[#ec4899]', labelClass: 'text-[#ec4899]/80' },
-                  { key: 'gender_parity_index', label: 'Gender Parity Index', value: composite.gender_parity_index, suffix: '', className: 'bg-[#ec4899]/10 text-[#be185d]', labelClass: 'text-[#be185d]/80' },
-                  { key: 'independent_influence_index', label: 'Independent Influence Index', value: composite.independent_influence_index, suffix: '', className: 'bg-[#f59e0b]/15 text-[#d97706]', labelClass: 'text-[#d97706]/80' },
                   { key: 'youth_representation_score', label: 'Youth Representation Score', value: composite.youth_representation_score, suffix: '%', className: 'bg-[#0d9488]/15 text-[#0d9488]', labelClass: 'text-[#0d9488]/80' },
-                  { key: 'party_fragmentation_score', label: 'Party Fragmentation Score', value: composite.party_fragmentation_score, suffix: '', className: 'bg-[#6366f1]/10 text-[#6366f1]', labelClass: 'text-[#6366f1]/80' },
                   { key: 'local_percentage', label: 'Local representation', value: composite.local_percentage, suffix: '%', className: 'bg-[#0d9488]/15 text-[#0d9488]', labelClass: 'text-[#0d9488]/80' },
+                  { key: 'education_index', label: 'Education index', value: composite.education_index, suffix: '', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f]', labelClass: 'text-[#1e3a5f]/70' },
+                  { key: 'gender_parity_index', label: 'Gender Parity Index', value: composite.gender_parity_index, suffix: '', className: 'bg-[#ec4899]/10 text-[#be185d]', labelClass: 'text-[#be185d]/80' },
+                  { key: 'winner_count', label: 'Winners', value: composite.winner_count, suffix: '', className: 'bg-[#b91c1c]/10 text-[#b91c1c]', labelClass: 'text-[#b91c1c]/80' },
+                  { key: 'independent_influence_index', label: 'Independent Influence Index', value: composite.independent_influence_index, suffix: '', className: 'bg-[#f59e0b]/15 text-[#d97706]', labelClass: 'text-[#d97706]/80' },
+                  { key: 'party_fragmentation_score', label: 'Party Fragmentation Score', value: composite.party_fragmentation_score, suffix: '', className: 'bg-[#6366f1]/10 text-[#6366f1]', labelClass: 'text-[#6366f1]/80' },
                   { key: 'avg_vote_share', label: 'Avg vote share', value: composite.avg_vote_share, suffix: '%', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f]', labelClass: 'text-[#1e3a5f]/70' },
                   { key: 'avg_margin_winner', label: 'Avg winner margin', value: composite.avg_margin_winner, suffix: ' pts', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f]', labelClass: 'text-[#1e3a5f]/70' },
-                  { key: 'education_index', label: 'Education index', value: composite.education_index, suffix: '', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f]', labelClass: 'text-[#1e3a5f]/70' },
                   { key: 'symbol_coverage', label: 'Symbol diversity', value: composite.symbol_coverage, suffix: '%', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f]', labelClass: 'text-[#1e3a5f]/70' },
                 ].filter(({ value }) => value != null).map(({ key, label, value, suffix, className, labelClass }) => {
                   const meta = COMPOSITE_INDICATOR_META[key];
                   const interpretation = meta?.getInterpretation?.(value) ?? null;
                   const hasTooltip = meta?.description != null;
                   return (
-                    <div key={key} className={`relative group w-full min-w-0 ${hasTooltip ? 'cursor-help' : ''}`}>
+                    <div key={key} tabIndex={hasTooltip ? 0 : undefined} className={`relative group w-full min-w-0 ${hasTooltip ? 'cursor-help focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1e3a5f]/40 focus-visible:ring-offset-1 rounded-lg' : ''}`}>
                       <div className={`px-3 py-2 rounded-lg ${className}`}>
                         <span className={`text-xs ${labelClass}`}>{label}</span>
-                        <div className="font-semibold">{value}{suffix}</div>
-                        {interpretation && (
-                          <p className="text-[10px] mt-1 opacity-90 leading-tight max-w-[180px]" title={interpretation}>
-                            {interpretation}
-                          </p>
+                        {interpretation ? (
+                          <>
+                            <div className="font-semibold text-sm leading-tight max-w-[180px]" title={interpretation}>
+                              {interpretation}
+                            </div>
+                            <div className="text-[10px] mt-0.5 opacity-85">{value}{suffix}</div>
+                          </>
+                        ) : (
+                          <div className="font-semibold">{value}{suffix}</div>
                         )}
                       </div>
                       {hasTooltip && (
-                        <div className="absolute left-0 bottom-full z-20 mb-1 hidden group-hover:block w-72 p-3 bg-[#1e3a5f] text-white text-left rounded-lg shadow-xl border border-white/10">
+                        <div className="absolute left-0 bottom-full z-20 mb-1 hidden group-hover:block group-focus-within:block w-72 max-w-[calc(100vw-2rem)] p-3 bg-[#1e3a5f] text-white text-left rounded-lg shadow-xl border border-white/10">
                           <div className="text-xs font-semibold mb-1">{meta.label}</div>
                           <p className="text-[11px] text-white/90 mb-2">{meta.description}</p>
                           {meta.range && (
@@ -820,9 +801,9 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
         </>
       )}
 
-      {!loading && !data && year && (
+      {!loading && !data && (
         <div className="flex-1 flex items-center justify-center text-[#1e3a5f]/70">
-          Select an election year to view insights.
+          No insights data available.
         </div>
       )}
     </div>

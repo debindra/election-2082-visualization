@@ -42,7 +42,7 @@ function getDetailFilterFields(language) {
   ];
 }
 
-const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElectionAreas, language = 'ne' }) => {
+const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElectionAreas, language = 'ne', viewContext = null }) => {
   const DETAIL_FILTER_FIELDS = useMemo(() => getDetailFilterFields(language), [language]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [currentTyping, setCurrentTyping] = useState('');
@@ -218,8 +218,8 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
   }, [onFiltersChange]);
 
   return (
-    <div className="bg-white p-4 lg:p-6 rounded-xl shadow-lg border border-[#1e3a5f]/15">
-      <h2 className="text-xl font-bold text-[#1e3a5f] mb-4">{language === 'en' ? 'Candidate comparison' : 'उम्मेदवार तुलना'}</h2>
+    <div className="bg-white p-3 sm:p-4 lg:p-6 rounded-xl shadow-lg border border-[#1e3a5f]/15">
+      <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f] mb-3 sm:mb-4">{language === 'en' ? 'Candidate comparison' : 'उम्मेदवार तुलना'}</h2>
 
       <div className="mb-4" ref={containerRef}>
         {/* Selected candidates card list */}
@@ -269,7 +269,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
         <label className="block text-sm font-medium text-[#1e3a5f]/90 mb-2">
           Search to add another
         </label>
-        <div className="flex gap-2 relative">
+        <div className="flex flex-col sm:flex-row gap-2 relative">
           <div className="flex-1 relative">
             <input
               type="text"
@@ -328,7 +328,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
           <button
             onClick={handleCompare}
             disabled={loading || selectedCandidates.length === 0}
-            className="px-4 py-2 bg-[#b91c1c] text-white rounded-md hover:bg-[#b91c1c]/90 disabled:bg-[#1e3a5f]/30 disabled:cursor-not-allowed"
+            className="px-4 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 bg-[#b91c1c] text-white rounded-md hover:bg-[#b91c1c]/90 disabled:bg-[#1e3a5f]/30 disabled:cursor-not-allowed touch-manipulation"
           >
             {loading ? 'Comparing...' : 'Compare'}
           </button>
@@ -369,12 +369,12 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
                 </>
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredDetailCandidates.map(([id, candidate]) => {
                 const name = language === 'en' ? (candidate.candidate_name_en ?? candidate.candidate_name ?? `Candidate ${id}`) : (candidate.candidate_name ?? `Candidate ${id}`);
                 return (
-                <div key={id} className="border border-[#1e3a5f]/15 rounded-lg p-3 bg-[#1e3a5f]/5">
-                  <div className="flex items-start gap-3 mb-2">
+                <div key={id} className="border border-[#1e3a5f]/15 rounded-lg p-3 bg-[#1e3a5f]/5 min-w-0">
+                  <div className="flex items-start gap-3 mb-2 min-w-0">
                     {candidate.image_url ? (
                       <img
                         src={candidate.image_url}
@@ -440,6 +440,11 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
             </div>
           </div>
         </div>
+      )}
+      {viewContext?.takeaway && (
+        <p className="text-sm text-[#1e3a5f]/70 mt-6 pt-4 border-t border-[#1e3a5f]/15" aria-label={language === 'en' ? 'Key takeaway' : 'मुख्य निष्कर्ष'}>
+          {viewContext.takeaway}
+        </p>
       )}
     </div>
   );

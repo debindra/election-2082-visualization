@@ -3,6 +3,8 @@
 This document describes how the system distinguishes **exact** vs
 **estimated** metrics and how that is communicated in APIs and the UI.
 
+**Election data source**: Candidate and election data used in this system are derived from information published or made available by the [Election Commission, Nepal](https://election.gov.np/). Data may have been crawled, cleaned, and aggregated for visualization. This is not an official ECN product.
+
 ## Metric provenance
 
 Where possible, metrics are computed directly from structured CSV data

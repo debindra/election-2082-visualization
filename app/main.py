@@ -353,17 +353,23 @@ async def get_election_summary(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
-    # Calculate summary statistics
+    # Constituencies: count election areas per district, then sum all (165 for full Nepal data)
+    if "constituency" in df.columns and "district" in df.columns:
+        per_district = df.groupby("district", sort=True)["constituency"].nunique()
+        total_constituencies = int(per_district.sum())
+    else:
+        total_constituencies = int(df["constituency"].nunique()) if "constituency" in df.columns else 0
+
     summary = {
         "year": year,
         "total_candidates": len(df),
-        "total_constituencies": df["constituency"].nunique() if "constituency" in df.columns else 0,
+        "total_constituencies": total_constituencies,
         "total_districts": df["district"].nunique() if "district" in df.columns else 0,
         "total_provinces": df["province"].nunique() if "province" in df.columns else 0,
         "parties": sorted(df["party"].unique().tolist()) if "party" in df.columns else [],
         "validation": validation.to_dict() if validation else None,
     }
-    
+
     return summary
 
 

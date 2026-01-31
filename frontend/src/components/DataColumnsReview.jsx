@@ -1,35 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { getSchema, getElectionColumns, listElections } from '../services/api';
+import { getSchema, getElectionColumns } from '../services/api';
+
+const ELECTION_YEAR = 2082;
 
 const DataColumnsReview = () => {
   const [schema, setSchema] = useState(null);
   const [columns, setColumns] = useState(null);
-  const [years, setYears] = useState([]);
-  const [selectedYear, setSelectedYear] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    listElections().then(setYears).catch(() => setYears([]));
     getSchema().then(setSchema).catch((e) => setError(e?.message || 'Failed to load schema'));
   }, []);
 
   useEffect(() => {
-    if (!selectedYear && years.length) setSelectedYear(years[0]);
-  }, [years, selectedYear]);
-
-  useEffect(() => {
-    if (!selectedYear) return;
     setLoading(true);
     setError(null);
-    getElectionColumns(selectedYear)
+    getElectionColumns(ELECTION_YEAR)
       .then(setColumns)
       .catch((e) => {
         setColumns(null);
         setError(e?.response?.data?.detail || e?.message || 'Failed to load columns');
       })
       .finally(() => setLoading(false));
-  }, [selectedYear]);
+  }, []);
 
   return (
     <div className="h-full overflow-y-auto bg-white rounded-xl border border-[#1e3a5f]/15 p-4 lg:p-6 space-y-6">
@@ -45,21 +39,6 @@ const DataColumnsReview = () => {
           {error}
         </div>
       )}
-
-      {/* Year selector */}
-      <div className="flex flex-wrap items-center gap-2">
-        <label className="text-sm font-medium text-[#1e3a5f]/90">Election year:</label>
-        <select
-          value={selectedYear ?? ''}
-          onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : null)}
-          className="rounded-md border border-[#1e3a5f]/25 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] text-[#1e3a5f]"
-        >
-          <option value="">—</option>
-          {years.map((y) => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-      </div>
 
       {/* Supported schema: required, optional, English */}
       {schema && (

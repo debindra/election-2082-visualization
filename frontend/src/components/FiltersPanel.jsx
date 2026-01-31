@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { getFilterOptions } from '../services/api';
 import { IconMapPin } from './icons';
 
-const FiltersPanel = ({ filters, onFiltersChange, availableElections = [], language = 'ne' }) => {
+const ELECTION_YEAR = 2082;
+
+const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
   const [localFilters, setLocalFilters] = useState(filters);
   // Sync from parent when filters are updated elsewhere (e.g. Candidate details filter)
   useEffect(() => {
@@ -59,17 +61,7 @@ const FiltersPanel = ({ filters, onFiltersChange, availableElections = [], langu
     let newFilters = { ...localFilters, [key]: value };
     
     // Reset dependent filters when parent changes
-    if (key === 'electionYear') {
-      newFilters = {
-        ...newFilters,
-        province: null,
-        district: null,
-        party: null,
-        gender: null,
-        educationLevel: null,
-        level: 'province',
-      };
-    } else if (key === 'province') {
+    if (key === 'province') {
       newFilters = {
         ...newFilters,
         district: null,
@@ -88,7 +80,7 @@ const FiltersPanel = ({ filters, onFiltersChange, availableElections = [], langu
 
   const handleReset = () => {
     const resetFilters = {
-      electionYear: availableElections[0] || null,
+      electionYear: ELECTION_YEAR,
       level: 'province',
       province: null,
       district: null,
@@ -138,25 +130,6 @@ const FiltersPanel = ({ filters, onFiltersChange, availableElections = [], langu
         <p className="text-xs font-semibold text-[#1e3a5f]/70 uppercase tracking-wide">
           Election context
         </p>
-
-        {/* Election Year */}
-        <div>
-          <label className="block text-xs font-medium text-[#1e3a5f]/90 mb-1.5">
-            Election year <span className="text-[#b91c1c]">*</span>
-          </label>
-          <select
-            value={localFilters.electionYear || ''}
-            onChange={(e) => handleChange('electionYear', e.target.value ? parseInt(e.target.value) : null)}
-            className="w-full px-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white text-sm transition-all hover:border-[#1e3a5f]/40 focus:border-[#1e3a5f]"
-          >
-            <option value="">Select Year</option>
-            {availableElections.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Map View Level */}
         <div className="bg-[#1e3a5f]/5 p-3 rounded-lg border border-[#1e3a5f]/15 min-w-0 overflow-hidden">

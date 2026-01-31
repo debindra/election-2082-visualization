@@ -15,6 +15,21 @@ const api = axios.create({
   },
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const message = err.response?.data?.detail
+      ? (typeof err.response.data.detail === 'string'
+        ? err.response.data.detail
+        : err.response?.data?.detail?.msg || JSON.stringify(err.response.data.detail))
+      : err.message || 'Network error';
+    try {
+      window.dispatchEvent(new CustomEvent('api-error', { detail: { message } }));
+    } catch (_) {}
+    return Promise.reject(err);
+  }
+);
+
 /**
  * Get map data (GeoJSON) with filters
  * 

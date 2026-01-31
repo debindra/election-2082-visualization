@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   IconBallot,
   IconBuildingColumns,
@@ -29,13 +29,15 @@ function getGenderFromProps(props) {
  * Displays election data in a card-based grid layout similar to election.onlinekhabar.com
  * Supports drill-down from Province → District → Election Area
  */
-const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionYear, focusConstituency, onClearFocusConstituency, language = 'ne' }) => {
+const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionYear, focusConstituency, onClearFocusConstituency, language = 'ne', viewContext = null }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [candidateDetails, setCandidateDetails] = useState(null);
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [candidatesError, setCandidatesError] = useState(null);
+  const [candidatesJustLoaded, setCandidatesJustLoaded] = useState(false);
   // Filter for candidate list in selected card: { field: 'party'|'district'|..., value: selected value }
   const [candidateListFilter, setCandidateListFilter] = useState({ field: '', value: '' });
+  const detailPanelRef = useRef(null);
 
   // Parse constituency number from display name (e.g. "सुनसरी - ४" → 4, "सुनसरी - १" → 1)
   const DEVANAGARI_TO_NUM = { '०': 0, '१': 1, '२': 2, '३': 3, '४': 4, '५': 5, '६': 6, '७': 7, '८': 8, '९': 9 };
@@ -206,9 +208,11 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
     setCandidatesLoading(true);
     setCandidatesError(null);
+    setCandidatesJustLoaded(false);
     try {
       const data = await compareCandidates(ids, electionYear);
       setCandidateDetails(data);
+      setCandidatesJustLoaded(true);
     } catch (err) {
       setCandidateDetails(null);
       setCandidatesError(err?.message || 'Failed to load candidates for this area');
@@ -216,6 +220,22 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
       setCandidatesLoading(false);
     }
   };
+
+  // Scroll detail panel into view when it opens
+  useEffect(() => {
+    if (!selectedItem || !detailPanelRef.current) return;
+    const timer = requestAnimationFrame(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+    return () => cancelAnimationFrame(timer);
+  }, [selectedItem]);
+
+  // Clear "just loaded" highlight after brief delay
+  useEffect(() => {
+    if (!candidatesJustLoaded) return;
+    const t = setTimeout(() => setCandidatesJustLoaded(false), 1500);
+    return () => clearTimeout(t);
+  }, [candidatesJustLoaded]);
 
   // Consistent header color (slate blue)
   const CARD_HEADER_BG = 'bg-[#1e3a5f]';
@@ -286,7 +306,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
         <div className="text-center">
           <IconBallot className="w-16 h-16 mx-auto mb-4 text-[#1e3a5f]/60" />
           <p className="text-xl text-[#1e3a5f]">{language === 'en' ? 'No election data available' : 'निर्वाचन डाटा उपलब्ध छैन'}</p>
-          <p className="text-sm text-[#1e3a5f]/60 mt-2">{language === 'en' ? 'Select an election year to view data' : 'निर्वाचन वर्ष छान्नुहोस्'}</p>
+          <p className="text-sm text-[#1e3a5f]/60 mt-2">{language === 'en' ? 'No map data for this view' : 'यो दृश्यको लागि नक्शा डाटा छैन'}</p>
         </div>
       </div>
     );
@@ -296,8 +316,8 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
     <div className="h-full flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 rounded-xl overflow-hidden fade-in">
       {/* Header — Election areas top section */}
       <div className="bg-gradient-to-br from-[#1e3a5f] via-[#1e3a5f] to-[#0f172a] text-white shadow-lg">
-        <div className="p-4 lg:p-5">
-          <div className="flex flex-wrap items-center gap-4 lg:gap-6">
+        <div className="p-3 sm:p-4 lg:p-5">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 lg:gap-6">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/10 backdrop-blur border border-white/20">
                 <LevelIcon className="w-6 h-6 lg:w-8 lg:h-8 text-white/90" />
@@ -307,26 +327,31 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                 <p className="text-white/80 text-sm mt-0.5">
                   {levelInfo.sublabel} · {features.length} {levelInfo.sublabel.toLowerCase()}
                 </p>
+                {viewContext?.focusLine && (
+                  <p className="text-white/70 text-xs mt-1" aria-hidden="true">
+                    {viewContext.focusLine}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Quick Stats — visible on all screens */}
+            {/* Quick Stats — visible on all screens, horizontal scroll on very small */}
             {stats && (
-              <div className="flex flex-wrap items-center gap-4 lg:gap-8 ml-0 lg:ml-4 pl-0 lg:pl-6 border-l-0 lg:border-l border-white/30">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold tabular-nums text-white">
+              <div className="flex items-center gap-3 sm:gap-4 lg:gap-8 ml-0 lg:ml-4 pl-0 lg:pl-6 border-l-0 lg:border-l border-white/30 overflow-x-auto pb-1 -mb-1 scrollbar-thin sm:overflow-visible sm:pb-0 sm:mb-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
                     {stats.totalCandidates.toLocaleString()}
                   </span>
                   <span className="text-white/80 text-sm">{labels.candidates}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold tabular-nums text-white">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white">
                     {stats.totalParties}
                   </span>
                   <span className="text-white/80 text-sm">{labels.parties}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl lg:text-3xl font-bold tabular-nums text-[#fbbf24]">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#fbbf24]">
                     {stats.totalIndependents}
                   </span>
                   <span className="text-white/80 text-sm">
@@ -334,16 +359,16 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                   </span>
                 </div>
                 {stats.avgAge > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl lg:text-3xl font-bold tabular-nums text-white/90">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-white/90">
                       {stats.avgAge.toFixed(0)}
                     </span>
                     <span className="text-white/80 text-sm">{labels.avgAge}</span>
                   </div>
                 )}
                 {stats.femalePercentage != null && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl lg:text-3xl font-bold tabular-nums text-[#ec4899]/90">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-[#ec4899]/90">
                       {stats.totalFemale.toLocaleString()}
                     </span>
                     <span className="text-white/80 text-sm">
@@ -358,8 +383,8 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
       </div>
 
       {/* Cards Grid */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 overscroll-behavior-contain">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {features.map((feature, index) => {
             const props = feature.properties;
             const name = language === 'en'
@@ -523,8 +548,20 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
       {/* Selected item detail panel */}
       {selectedItem && (
-        <div className="flex-none shrink-0 bg-white border-t border-[#1e3a5f]/20 shadow-[0_-4px_16px_rgba(30,58,95,0.06)]">
-          <div className="flex items-start justify-between gap-4 p-4 max-h-80 overflow-y-auto">
+        <div
+          ref={detailPanelRef}
+          className={`flex-none shrink-0 bg-white border-t-2 shadow-[0_-4px_16px_rgba(30,58,95,0.06)] transition-all duration-300 ${
+            candidatesJustLoaded ? 'border-[#16a34a] ring-2 ring-[#16a34a]/20' : 'border-[#1e3a5f]/20'
+          }`}
+          aria-live="polite"
+          aria-label={candidatesLoading
+            ? (language === 'en' ? 'Loading candidates' : 'उम्मेदवार लोड हुँदैछ')
+            : candidateDetails
+              ? (language === 'en' ? `${Object.values(candidateDetails.candidates || {}).length} candidates loaded` : `${Object.values(candidateDetails.candidates || {}).length} उम्मेदवार लोड भयो`)
+              : undefined
+          }
+        >
+          <div className="flex items-start justify-between gap-3 sm:gap-4 p-3 sm:p-4 max-h-[50vh] sm:max-h-80 overflow-y-auto overscroll-contain">
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-base text-[#1e3a5f]">
                 {language === 'en'
@@ -540,7 +577,21 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
               {currentLevel === 'constituency' && (
                 <div className="mt-3">
                   {candidatesLoading && (
-                    <p className="text-sm text-[#1e3a5f]/60">{language === 'en' ? 'Loading…' : 'लोड हुँदैछ…'}</p>
+                    <div className="flex flex-col items-center gap-4 py-6" role="status" aria-label={language === 'en' ? 'Loading candidates' : 'उम्मेदवार लोड हुँदैछ'}>
+                      <div className="animate-spin rounded-full h-10 w-10 border-2 border-[#1e3a5f]/20 border-t-[#b91c1c]" />
+                      <p className="text-sm font-medium text-[#1e3a5f]/80">{language === 'en' ? 'Loading candidates…' : 'उम्मेदवार लोड हुँदैछ…'}</p>
+                      <div className="w-full space-y-2 max-w-sm">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex gap-3 p-2.5 rounded-lg border border-[#1e3a5f]/12 bg-[#1e3a5f]/5 animate-pulse">
+                            <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/20 shrink-0" />
+                            <div className="flex-1 space-y-1.5">
+                              <div className="h-4 w-3/4 rounded bg-[#1e3a5f]/15" />
+                              <div className="h-3 w-1/2 rounded bg-[#1e3a5f]/10" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {candidatesError && (
@@ -549,6 +600,16 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
                   {!candidatesLoading && candidateDetails && (
                     <>
+                      {candidatesJustLoaded && (
+                        <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-[#16a34a]/10 text-[#16a34a] border border-[#16a34a]/20 animate-pulse-slow" role="status">
+                          <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-sm font-medium">
+                            {Object.values(candidateDetails.candidates || {}).length} {language === 'en' ? 'candidates loaded' : 'उम्मेदवार लोड भयो'}
+                          </span>
+                        </div>
+                      )}
                       {/* Filter row */}
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <select
@@ -586,7 +647,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                           {filteredCandidates.length} {language === 'en' ? 'of' : '/'} {Object.values(candidateDetails.candidates || {}).length}
                         </span>
                       </div>
-                      <div className="max-h-52 overflow-y-auto pr-1">
+                      <div className="max-h-40 sm:max-h-52 overflow-y-auto pr-1 -mr-1">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {filteredCandidates.map((candidate, idx) => {
                           const name = language === 'en' ? (candidate.candidate_name_en ?? candidate.candidate_name ?? 'Unknown') : (candidate.candidate_name ?? 'Unknown');
@@ -688,6 +749,11 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
             </button>
           </div>
         </div>
+      )}
+      {viewContext?.takeaway && (
+        <p className="text-xs text-[#1e3a5f]/70 px-3 sm:px-4 pb-3 pt-2 border-t border-[#1e3a5f]/10 mt-2" aria-label={language === 'en' ? 'Key takeaway' : 'मुख्य निष्कर्ष'}>
+          {viewContext.takeaway}
+        </p>
       )}
     </div>
   );
