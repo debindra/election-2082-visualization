@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Mount election CSVs so you can add/update data without rebuilding
+      - ./data/elections:/app/data/elections:ro
+      - ./data/geojson:/app/data/geojson:ro
+    restart: unless-stopped

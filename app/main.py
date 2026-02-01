@@ -4,10 +4,12 @@ FastAPI main application for Nepal House of Representatives Election Data API.
 Longitudinal Election Data Visualization & Insight System.
 """
 import logging
+from pathlib import Path
 from typing import Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Query, Path as PathParam
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import pandas as pd
 
 from app.core.config import API_V1_PREFIX, API_TITLE, API_DESCRIPTION, API_VERSION
@@ -614,6 +616,23 @@ async def compare_elections(
             status_code=400,
             detail=f"Unsupported metric: {metric}. Supported: party_distribution, candidate_count, constituency_count"
         )
+
+
+# Serve frontend static files when built (Docker / production)
+# Must be registered last so / and /health are matched first
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if FRONTEND_DIST.exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve SPA: static files if present, else index.html for client-side routing."""
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        file_path = FRONTEND_DIST / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(FRONTEND_DIST / "index.html")
 
 
 @app.exception_handler(Exception)
