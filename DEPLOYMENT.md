@@ -20,15 +20,17 @@ sh get-docker.sh
 apt-get update && apt-get install -y docker-compose-plugin
 ```
 
-## 2. Upload project and data
+## 2. Clone project on droplet
 
-Ensure your election CSVs are in `data/elections/` (e.g. `2082.csv`). The GeoJSON for Nepal districts is included in the repo.
+On the droplet (or after SSH):
 
 ```bash
-# From your local machine - clone or rsync the project
-rsync -avz --exclude node_modules --exclude venv --exclude .git \
-  . root@your-droplet-ip:/opt/election-visualization/
+cd /opt
+git clone <your-repo-url> election-visualization
+cd election-visualization
 ```
+
+Add your election CSVs to `data/elections/` (e.g. `2082.csv`). The GeoJSON for Nepal districts is included in the repo.
 
 ## 3. Environment variables
 
@@ -47,18 +49,32 @@ CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
 
 ## 4. Build and run
 
+**First time:**
 ```bash
 cd /opt/election-visualization
-
-# Build and start
 docker compose up -d --build
-
-# If building on Mac M1/ARM for an x86 droplet:
-# docker compose build --platform linux/amd64 && docker compose up -d
-
-# Check logs
-docker compose logs -f
 ```
+
+**Subsequent deploys (use `deploy.sh`):**
+```bash
+cd /opt/election-visualization
+./deploy.sh
+```
+
+Or manually:
+```bash
+git fetch --all
+git pull
+docker compose build
+docker compose up -d
+```
+
+If building on Mac M1/ARM for an x86 droplet:
+```bash
+docker compose build --platform linux/amd64 && docker compose up -d
+```
+
+Check logs: `docker compose logs -f`
 
 The app will be available at `http://your-droplet-ip:8000`.
 
