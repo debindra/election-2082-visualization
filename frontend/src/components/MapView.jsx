@@ -668,7 +668,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                       <div className="max-h-[min(40vh,12rem)] sm:max-h-52 overflow-y-auto pr-1 -mr-1">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {filteredCandidates.map((candidate, idx) => {
-                          const name = language === 'en' ? (candidate.candidate_name_en ?? candidate.candidate_name ?? 'Unknown') : (candidate.candidate_name ?? 'Unknown');
+                          const name = candidate.candidate_name ?? 'Unknown';
                           const parts = name.trim().split(' ').filter(Boolean);
                           const initials =
                             parts.length === 1

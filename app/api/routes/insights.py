@@ -290,15 +290,16 @@ async def get_year_insights(
     """
     Individual election year insights, filterable by party, state (province), district, and gender.
 
-    Returns seven insight blocks:
-    1. Age Demographics of Candidates
-    2. Gender Demographics (when gender data available)
-    3. Education Profile Insight
-    4. Party vs Age Trend (Power Insight)
-    5. Party vs Gender (Power Insight)
-    6. Birthplace vs Contest District (Local Representation)
-    7. Symbol Recognition Analysis (UX Insight)
-    8. High-Value Composite Metrics (For Smart Voters)
+    Returns:
+    - Age Demographics of Candidates
+    - Gender Demographics (when gender data available)
+    - Education Profile Insight
+    - Party vs Age Trend
+    - Party vs Gender
+    - Birthplace vs Contest District (Local Representation)
+    - Symbol Recognition Analysis
+    - Female Representation by Geography
+    - Composite Metrics (inclusivity, representation, outcomes, political landscape)
     """
     try:
         df, _ = loader.load_election(election_year)

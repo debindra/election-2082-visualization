@@ -158,15 +158,15 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
         trigger: 'item',
         formatter: (params) => {
           const d = districts[params.dataIndex];
-          return `${d.district}<br/>Avg margin (Top 2): ${(
+          return `${d.district}<br/>Average margin (Top 2): ${(
             d.avg_margin_top2 ?? 0
-          ).toFixed(2)} pts<br/>Avg margin (Top 3): ${(d.avg_margin_top3 ?? 0).toFixed(2)} pts`;
+          ).toFixed(2)} pts<br/>Average margin (Top 3): ${(d.avg_margin_top3 ?? 0).toFixed(2)} pts`;
         },
       },
       grid: { left: 80, right: 20, top: 70, bottom: 40 },
       xAxis: {
         type: 'value',
-        name: 'Avg margin (Top 2, pts)',
+        name: 'Average margin (Top 2, pts)',
         splitLine: { show: false },
       },
       yAxis: {
@@ -459,7 +459,7 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
 
       {year && (
         <section className="mt-8 pt-6 border-t border-[#003893]/20" aria-labelledby="year-insights-heading">
-          <h2 id="year-insights-heading" className="text-lg font-bold text-[#003893] mb-2">Individual Election Year Insights</h2>
+          <h2 id="year-insights-heading" className="text-lg font-bold text-[#003893] mb-2">Election 2082 Insights</h2>
           <p className="text-sm text-[#003893]/70 mb-4">
             Age demographics, education profile, party vs age, local representation, symbol recognition, and composite metrics. Filter by party, state (province), and district.
           </p>

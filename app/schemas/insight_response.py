@@ -173,7 +173,7 @@ class PartyAgeMetric(BaseModel):
 
 
 class PartyVsAgeResponse(BaseModel):
-    """Party vs age trend (power insight)."""
+    """Party vs age trend."""
     parties: List[PartyAgeMetric] = Field(..., description="Average age per party")
     power_insight: str = Field(..., description="Power insight text")
 

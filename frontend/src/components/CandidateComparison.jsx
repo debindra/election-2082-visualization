@@ -58,7 +58,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
   const skipNextSearchRef = useRef(false);
 
   const query = currentTyping.trim();
-  const displayName = (c) => (language === 'en' ? (c.candidate_name_en ?? c.candidate_name) : c.candidate_name) ?? c.candidate_id ?? '';
+  const displayName = (c) => (c.candidate_name ?? c.candidate_id ?? '');
 
   const fetchSuggestions = useCallback(async () => {
     if (skipNextSearchRef.current) {
@@ -311,7 +311,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
                         }
                       }}
                     >
-                      <span className="font-medium text-[#1e3a5f]">{(language === 'en' ? (c.candidate_name_en ?? c.candidate_name) : c.candidate_name) ?? c.candidate_id}</span>
+                      <span className="font-medium text-[#1e3a5f]">{(c.candidate_name ?? c.candidate_id)}</span>
                       {(language === 'en' ? (c.party_en ?? c.party) : c.party) && (
                         <span className="text-[#1e3a5f]/70 ml-2 inline-flex items-center gap-1">
                           <PartyImage partyName={language === 'en' ? (c.party_en ?? c.party) : c.party} className="w-3.5 h-3.5 shrink-0" />
@@ -371,7 +371,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filteredDetailCandidates.map(([id, candidate]) => {
-                const name = language === 'en' ? (candidate.candidate_name_en ?? candidate.candidate_name ?? `Candidate ${id}`) : (candidate.candidate_name ?? `Candidate ${id}`);
+                const name = candidate.candidate_name ?? `Candidate ${id}`;
                 return (
                 <div key={id} className="border border-[#1e3a5f]/15 rounded-lg p-3 bg-[#1e3a5f]/5 min-w-0">
                   <div className="flex items-start gap-3 mb-2 min-w-0">
