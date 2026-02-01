@@ -211,10 +211,14 @@ class ConstituencyStats(BaseModel):
 
 
 # API Routes
+# FRONTEND_DIST check: when built (Docker), serve SPA at /; else API message
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
 @app.get("/")
 async def root():
-    """Root endpoint."""
+    """Root: serve SPA when built (Docker), else API info."""
+    if FRONTEND_DIST.exists():
+        return FileResponse(FRONTEND_DIST / "index.html")
     return {
         "message": "Nepal House of Representatives Election Data API",
         "version": settings.api_version,
@@ -620,7 +624,6 @@ async def compare_elections(
 
 # Serve frontend static files when built (Docker / production)
 # Must be registered last so / and /health are matched first
-FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 if FRONTEND_DIST.exists():
     app.mount("/assets", StaticFiles(directory=FRONTEND_DIST / "assets"), name="assets")
 
