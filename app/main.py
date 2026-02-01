@@ -141,7 +141,15 @@ async def add_security_headers(request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    # Allow MapLibre CSS (unpkg), Google Fonts, data/blob images, and API (self + dev backend)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "style-src 'self' https://unpkg.com https://fonts.googleapis.com; "
+        "style-src-elem 'self' https://unpkg.com https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; "
+        "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000"
+    )
     return response
 
 
