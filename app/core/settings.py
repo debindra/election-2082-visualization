@@ -39,7 +39,13 @@ class Settings(BaseSettings):
     
     # CORS Settings (use specific origins when allow_credentials=True; "*" is rejected by browsers)
     # Set CORS_ORIGINS in .env for production, e.g. CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
-    cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:5173", "http://127.0.0.1:5173"]
+    cors_origins: list[str] = [
+        "http://localhost:3000", "http://127.0.0.1:3000",
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://165.22.215.152", "https://165.22.215.152",
+        "http://165.22.215.152:80", "https://165.22.215.152:443",
+        "http://165.22.215.152:5173", "https://165.22.215.152:5173",
+    ]
     cors_allow_credentials: bool = True
     cors_allow_methods: list[str] = ["*"]
     cors_allow_headers: list[str] = ["*"]
