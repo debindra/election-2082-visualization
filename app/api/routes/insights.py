@@ -322,7 +322,8 @@ async def get_year_insights(
         local_d = compute_birthplace_vs_contest(filtered)
         symbol_d = compute_symbol_recognition(filtered)
         composite_d = compute_composite_metrics(filtered)
-        geo_d = compute_geographic_indicators(filtered)
+        # Geographic indicators: always from full dataset (overall insights, no filter affect)
+        geo_d = compute_geographic_indicators(df)
 
         return YearInsightsResponse(
             election_year=election_year,

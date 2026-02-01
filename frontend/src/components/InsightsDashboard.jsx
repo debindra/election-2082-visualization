@@ -4,6 +4,7 @@ import {
   getIndependentWaveInsight,
   getCompetitionPressureInsight,
   getPartySaturationInsight,
+  getYearInsights,
 } from '../services/api';
 
 const ELECTION_YEAR = 2082;
@@ -18,6 +19,7 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
   const [independentWave, setIndependentWave] = useState(null);
   const [competitionPressure, setCompetitionPressure] = useState(null);
   const [partySaturation, setPartySaturation] = useState(null);
+  const [geographicIndicators, setGeographicIndicators] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [maximizedCard, setMaximizedCard] = useState(null);
@@ -55,6 +57,14 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
     };
 
     loadInsights();
+  }, [year]);
+
+  // Unfiltered geographic indicators (overall election) — below Insights Overview, above Election 2082 Insights
+  useEffect(() => {
+    if (!year) return;
+    getYearInsights(year, {})
+      .then((res) => setGeographicIndicators(res?.geographic_indicators ?? null))
+      .catch(() => setGeographicIndicators(null));
   }, [year]);
 
   const buildIndependentWaveOption = () => {
@@ -415,6 +425,72 @@ const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
           <p className="text-sm text-[#003893]/60 py-2">No overview charts for this year. Use Year Insights below.</p>
         )}
       </section>
+
+      {/* Female representation by geography — full width, overall (no filter affect), below अन्तर्दृष्टि, above Election 2082 Insights */}
+      {geographicIndicators && (
+        <section className="w-full mb-6 mt-2" aria-labelledby="geographic-indicators-heading">
+          <div className="w-full bg-white rounded-xl border border-[#003893]/15 shadow-sm p-4" role="region">
+            <h2 id="geographic-indicators-heading" className="text-lg font-bold text-[#003893] mb-2">
+              {language === 'en' ? 'Female representation by geography' : 'भौगोलिक रूपमा महिला प्रतिनिधित्व'}
+            </h2>
+            <p className="text-sm text-[#003893]/70 mb-3">
+              {language === 'en' ? 'Overall election-wide insights; filters do not apply.' : 'समग्र निर्वाचन-व्यापी अन्तर्दृष्टि; फिल्टर लागू हुँदैन।'}
+            </p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-xs font-medium text-[#ec4899] mb-1.5">
+                  {language === 'en' ? 'Districts with zero female candidates' : 'शुन्य महिला उम्मेदवार भएका जिल्ला'}
+                  {(geographicIndicators.gender_zero_count ?? 0) > 0 && (
+                    <span className="text-[#003893]/70 font-normal ml-1">({geographicIndicators.gender_zero_count})</span>
+                  )}
+                </h3>
+                {(geographicIndicators.gender_zero_count ?? 0) === 0 ? (
+                  <p className="text-sm text-[#003893]/70">{language === 'en' ? 'All districts have at least one female candidate.' : 'सबै जिल्लामा कम्तीमा एक महिला उम्मेदवार छन्।'}</p>
+                ) : (
+                  <p className="text-sm text-[#003893]/85">{(geographicIndicators.gender_zero_districts || []).join(', ')}</p>
+                )}
+              </div>
+              {(geographicIndicators.top_female_districts || []).length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-[#ec4899] mb-1.5">{language === 'en' ? 'High female concentration (top 5 districts)' : 'उच्च महिला एकाग्रता (शीर्ष ५ जिल्ला)'}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {(geographicIndicators.top_female_districts || []).map((d, i) => (
+                      <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#ec4899]/15 text-[#003893] text-sm" title={d?.district}>
+                        {d?.district ?? ''}{d?.province && <span className="text-[#003893]/60 ml-1">({d.province})</span>}
+                        <span className="font-semibold text-[#ec4899] ml-1">{d?.female_percentage ?? 0}%</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {((geographicIndicators.state_female_high || []).length > 0 || (geographicIndicators.state_female_low || []).length > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(geographicIndicators.state_female_high || []).length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-medium text-[#0d9488] mb-1.5">{language === 'en' ? 'High female concentration (states)' : 'उच्च महिला एकाग्रता (प्रदेश)'}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {(geographicIndicators.state_female_high || []).map((s, i) => (
+                          <span key={i} className="inline-flex items-center px-2 py-1 rounded-lg bg-[#0d9488]/15 text-[#003893] text-sm">{s.province} <span className="font-semibold text-[#0d9488] ml-1">{s.female_percentage}%</span></span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(geographicIndicators.state_female_low || []).length > 0 && (
+                    <div>
+                      <h3 className="text-xs font-medium text-[#6366f1] mb-1.5">{language === 'en' ? 'Low female concentration (states)' : 'न्यून महिला एकाग्रता (प्रदेश)'}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {(geographicIndicators.state_female_low || []).map((s, i) => (
+                          <span key={i} className="inline-flex items-center px-2 py-1 rounded-lg bg-[#6366f1]/15 text-[#003893] text-sm">{s.province} <span className="font-semibold text-[#6366f1] ml-1">{s.female_percentage}%</span></span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {maximizedCard && year && (
             <div

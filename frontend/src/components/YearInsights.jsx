@@ -572,11 +572,10 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
             {CHART_PRIORITY_ORDER.map((key) => {
               const option = key === 'partyAge' ? partyAgeOption : key === 'partyGender' ? partyGenderOption : key === 'age' ? ageOption : key === 'gender' ? genderOption : key === 'local' ? localOption : key === 'education' ? educationOption : symbolOption;
               if (!option) return null;
-              const isWide = key === 'partyAge' || key === 'partyGender';
               return (
                 <div
                   key={key}
-                  className={`bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-3 relative min-w-0 ${isWide ? 'lg:col-span-2' : ''}`}
+                  className="bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-3 relative min-w-0"
                 >
                 <button
                   type="button"
@@ -590,68 +589,11 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
                   </svg>
                 </button>
                 <div role="img" aria-label={CARD_TITLES[key] || key} className="min-w-0 overflow-hidden">
-                  <ReactECharts option={option} style={{ height: isWide ? 'min(320px, 45vh)' : 'min(280px, 40vh)', width: '100%' }} className="min-h-[220px]" />
+                  <ReactECharts option={option} style={{ height: 'min(280px, 40vh)', width: '100%' }} className="min-h-[220px]" />
                 </div>
               </div>
             );
             })}
-            {data?.geographic_indicators && (
-              <div className="bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-4 min-w-0">
-                <h3 className="text-sm font-semibold text-[#1e3a5f] mb-3">{language === 'en' ? 'Female representation by geography' : 'भौगोलिक रूपमा महिला प्रतिनिधित्व'}</h3>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-xs font-medium text-[#ec4899] mb-1.5">
-                      {language === 'en' ? 'Districts with zero female candidates' : 'शुन्य महिला उम्मेदवार भएका जिल्ला'}
-                      {(data.geographic_indicators.gender_zero_count ?? 0) > 0 && (
-                        <span className="text-[#1e3a5f]/70 font-normal ml-1">({data.geographic_indicators.gender_zero_count})</span>
-                      )}
-                    </h4>
-                    {(data.geographic_indicators.gender_zero_count ?? 0) === 0 ? (
-                      <p className="text-xs text-[#1e3a5f]/70">{language === 'en' ? 'All districts have at least one female candidate.' : 'सबै जिल्लामा कम्तीमा एक महिला उम्मेदवार छन्।'}</p>
-                    ) : (
-                      <p className="text-xs text-[#1e3a5f]/85">{(data.geographic_indicators.gender_zero_districts || []).join(', ')}</p>
-                    )}
-                  </div>
-                  {(data.geographic_indicators.top_female_districts || []).length > 0 && (
-                    <div>
-                      <h4 className="text-xs font-medium text-[#ec4899] mb-1.5">{language === 'en' ? 'High female concentration (top 5 districts)' : 'उच्च महिला एकाग्रता (शीर्ष ५ जिल्ला)'}</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {(data.geographic_indicators.top_female_districts || []).map((d, i) => (
-                          <span key={i} className="inline-flex items-center px-2.5 py-1 rounded-lg bg-[#ec4899]/15 text-[#1e3a5f] text-xs" title={d?.district}>
-                            {d?.district ?? ''}{d?.province && <span className="text-[#1e3a5f]/60 ml-1">({d.province})</span>}
-                            <span className="font-semibold text-[#ec4899] ml-1">{d?.female_percentage ?? 0}%</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {((data.geographic_indicators.state_female_high || []).length > 0 || (data.geographic_indicators.state_female_low || []).length > 0) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {(data.geographic_indicators.state_female_high || []).length > 0 && (
-                        <div>
-                          <h4 className="text-xs font-medium text-[#0d9488] mb-1.5">{language === 'en' ? 'High female concentration (states)' : 'उच्च महिला एकाग्रता (प्रदेश)'}</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {(data.geographic_indicators.state_female_high || []).map((s, i) => (
-                              <span key={i} className="inline-flex items-center px-2 py-1 rounded-lg bg-[#0d9488]/15 text-[#1e3a5f] text-xs">{s.province} <span className="font-semibold text-[#0d9488] ml-1">{s.female_percentage}%</span></span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {(data.geographic_indicators.state_female_low || []).length > 0 && (
-                        <div>
-                          <h4 className="text-xs font-medium text-[#6366f1] mb-1.5">{language === 'en' ? 'Low female concentration (states)' : 'न्यून महिला एकाग्रता (प्रदेश)'}</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {(data.geographic_indicators.state_female_low || []).map((s, i) => (
-                              <span key={i} className="inline-flex items-center px-2 py-1 rounded-lg bg-[#6366f1]/15 text-[#1e3a5f] text-xs">{s.province} <span className="font-semibold text-[#6366f1] ml-1">{s.female_percentage}%</span></span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
           {maximizedCard && (
@@ -707,7 +649,7 @@ const YearInsights = ({ electionYear: propYear, province: propProvince, district
 
           {composite && (
             <div className="mt-4 bg-white rounded-xl border border-[#1e3a5f]/15 shadow-sm p-4" role="region" aria-labelledby="composite-metrics-heading">
-              <h3 id="composite-metrics-heading" className="text-sm font-semibold text-[#1e3a5f] mb-1">{language === 'en' ? 'How inclusive was this election?' : 'यो निर्वाचन कति समावेशी थियो?'}</h3>
+              <h3 id="composite-metrics-heading" className="text-sm font-semibold text-[#1e3a5f] mb-1">{language === 'en' ? 'How inclusive was this election?' : 'यो निर्वाचन कति समावेशी?'}</h3>
               <p className="text-xs text-[#1e3a5f]/70 mb-3">{language === 'en' ? 'Key metrics: female and youth representation, local roots, education, gender parity.' : 'मुख्य मेट्रिक्स: महिला र युवा प्रतिनिधित्व, स्थानीय जड, शिक्षा, लिङ्ग समानता।'}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-3">
                 {[
