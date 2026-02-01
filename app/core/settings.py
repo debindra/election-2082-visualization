@@ -45,6 +45,8 @@ class Settings(BaseSettings):
         "http://165.22.215.152", "https://165.22.215.152",
         "http://165.22.215.152:80", "https://165.22.215.152:443",
         "http://165.22.215.152:5173", "https://165.22.215.152:5173",
+        "https://electionnepal.subsy.tech", "http://electionnepal.subsy.tech",
+        "https://electionnepal.subsy.tech:443", "http://electionnepal.subsy.tech:80",
     ]
     cors_allow_credentials: bool = True
     cors_allow_methods: list[str] = ["*"]
