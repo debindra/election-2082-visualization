@@ -1,19 +1,14 @@
 /**
  * API service for communicating with the FastAPI backend.
  * In dev, use empty string so Vite proxy (/api -> localhost:8000) is used (avoids CORS).
- * In prod: VITE_API_URL if set; else same host on port 8000 (e.g. droplet 165.22.215.152:8000); else localhost:8000.
+ * In prod: VITE_API_URL if set; else same origin (empty string). Same-origin works when
+ * Nginx serves HTTPS and proxies / to the app on :8000 (no HTTPS on :8000), so API calls
+ * must go to e.g. https://electionnepal.subsy.tech/api/v1/... not ...:8000.
  */
 import axios from 'axios';
 
-function getProductionApiBase() {
-  if (typeof window !== 'undefined' && window.location?.hostname) {
-    return `${window.location.protocol}//${window.location.hostname}:8000`;
-  }
-  return 'http://localhost:8000';
-}
-
 const API_BASE_URL = import.meta.env.VITE_API_URL
-  || (import.meta.env.DEV ? '' : getProductionApiBase());
+  || (import.meta.env.DEV ? '' : '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
