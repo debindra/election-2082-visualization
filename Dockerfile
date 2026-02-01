@@ -4,7 +4,7 @@ FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --omit=dev || npm ci
+RUN npm ci
 
 COPY frontend ./
 # Empty VITE_API_URL = same-origin API calls (relative /api/v1/...)
