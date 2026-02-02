@@ -148,6 +148,8 @@ async def add_security_headers(request, call_next):
         "style-src-elem 'self' https://unpkg.com https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "img-src 'self' data: blob:; "
+        "script-src 'self' https://plausible.io; "
+        "script-src-elem 'self' https://plausible.io; "
         "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 "
         "http://165.22.215.152 http://165.22.215.152:8000 https://165.22.215.152 https://165.22.215.152:8000 "
         "https://nepalelection.subsy.tech https://nepalelection.subsy.tech:8000 "
