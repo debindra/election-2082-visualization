@@ -228,4 +228,22 @@ export const getElectionColumns = async (year) => {
   return response.data;
 };
 
+/**
+ * Get voting centers
+ * Filters can be applied by province, district, election_area, palika_name, ward_no, or polling_center_code
+ * Returns: { voting_centers: [...], summary: { total_centers, total_voters, ... } }
+ */
+export const getVotingCenters = async (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.province) params.append('province', filters.province);
+  if (filters.district) params.append('district', filters.district);
+  if (filters.electionArea) params.append('election_area', filters.electionArea);
+  if (filters.palikaName) params.append('palika_name', filters.palikaName);
+  if (filters.wardNo) params.append('ward_no', filters.wardNo);
+  if (filters.pollingCenterCode) params.append('polling_center_code', filters.pollingCenterCode);
+
+  const response = await api.get(`/api/v1/voting-centers?${params.toString()}`);
+  return response.data;
+};
+
 export default api;
