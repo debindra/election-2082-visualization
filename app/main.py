@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
 
-from app.core.config import API_V1_PREFIX, API_TITLE, API_DESCRIPTION, API_VERSION
+from app.core.config import API_V1_PREFIX, API_TITLE, API_DESCRIPTION, API_VERSION, ELECTIONS_DIR
 from app.core.settings import settings
 from app.data.loader import loader, ElectionDataLoader
 from app.data.validator import ValidationResult
@@ -71,7 +71,7 @@ PROVINCE_ORDER_RANK = {
     "Sudurpachim": 6,
     "Sudurpachim Province": 6,
 }
-
+# DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 def _match_col_or_en(
     df: pd.DataFrame,
@@ -568,6 +568,179 @@ async def get_constituency_stats(
         constituency_stats.append(stats)
     
     return sorted(constituency_stats, key=lambda x: x["constituency"])
+
+
+class VotingCenterStats(BaseModel):
+    """Voting center-level statistics."""
+    area_no: int
+    district: str
+    province: str
+    palika_type: Optional[str] = None
+    palika_name: Optional[str] = None
+    ward_no: Optional[int] = None
+    polling_center_code: int
+    polling_center_name: str
+    sub_center: Optional[str] = None
+    voter_count: int
+    voter_from_serial: int
+    voter_to_serial: int
+    source_file: Optional[str] = None
+    language: Optional[str] = None
+
+
+class VotingCentersSummary(BaseModel):
+    """Summary statistics for voting centers."""
+    total_centers: int
+    total_voters: int
+    voters_from_serial: int
+    voters_to_serial: int
+    filtered_by: Dict[str, str]
+
+
+class VotingCentersResponse(BaseModel):
+    """Response containing voting centers and summary."""
+    voting_centers: List[VotingCenterStats]
+    summary: VotingCentersSummary
+
+
+@app.get(f"{API_V1_PREFIX}/voting-centers", response_model=VotingCentersResponse)
+async def get_voting_centers(
+    district: Optional[str] = Query(None, description="Filter by district"),
+    province: Optional[str] = Query(None, description="Filter by province"),
+    election_area: Optional[int] = Query(None, description="Filter by election area number (area_no)"),
+    palika_name: Optional[str] = Query(None, description="Filter by palika/municipality name"),
+    ward_no: Optional[int] = Query(None, description="Filter by ward number"),
+    polling_center_code: Optional[int] = Query(None, description="Filter by polling center code"),
+):
+    """
+    Get voting center data.
+
+    Filters can be applied by province, district, election_area, palika_name, ward_no, or polling_center_code.
+    Returns detailed information about each voting center including voter counts and center details,
+    plus a summary with total voters and counts.
+    """
+    import re
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    voting_center_file = ELECTIONS_DIR / "voting-center-latest.csv"
+
+    if not voting_center_file.exists():
+        raise HTTPException(status_code=404, detail="Voting center data file not found")
+
+    try:
+        df = pd.read_csv(voting_center_file)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load voting center data: {str(e)}")
+
+    # Log incoming parameters for debugging
+    logger.info(f"Voting centers request - province: {province}, district: {district}, election_area: {election_area}, palika_name: {palika_name}")
+    logger.info(f"Total rows in CSV: {len(df)}")
+    logger.info(f"Election_area type: {type(election_area)}, value: {election_area}")
+
+    # Apply filters cumulatively - all provided filters are applied together
+    logger.info(f"Applying filters - province: {province}, district: {district}, election_area: {election_area}, palika_name: {palika_name}")
+
+    # Parse election_area (constituency number) - can be int or string (e.g., "सुनसरी - ४")
+    if election_area is not None:
+        constituency_num = None
+
+        # If it's already an integer, use it directly
+        if isinstance(election_area, int):
+            constituency_num = election_area
+        else:
+            # Try to parse from string name (e.g., "सुनसरी - ४" -> 4)
+            devanagari_num = {'०': '0', '१': '1', '२': '2', '३': '3', '४': '4', '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'}
+            match = re.search(r'[-–—]\s*([०१२३४५६७८९\d]+)\s*$', str(election_area))
+            if match:
+                num_str = match.group(1)
+                # Convert Devanagari to Arabic numerals
+                arabic_num = ''.join(devanagari_num.get(c, c) for c in num_str)
+                try:
+                    constituency_num = int(arabic_num)
+                except ValueError:
+                    pass
+
+        if constituency_num is not None:
+            df = df[df["area_no"] == constituency_num]
+            logger.info(f"Filtered by election_area={election_area} -> constituency_num={constituency_num}, rows: {len(df)}")
+
+    # Apply province filter (if provided)
+    if province:
+        df = df[df["province"].str.contains(province, case=False, na=False, regex=False)]
+        logger.info(f"Filtered by province={province}, rows: {len(df)}")
+
+    # Apply district filter (if provided)
+    if district:
+        df = df[df["district"].str.contains(district, case=False, na=False, regex=False)]
+        logger.info(f"Filtered by district={district}, rows: {len(df)}")
+
+    # Apply other filters (if provided)
+    if palika_name:
+        df = df[df["palika_name"].str.contains(palika_name, case=False, na=False, regex=False)]
+        logger.info(f"Filtered by palika_name={palika_name}, rows: {len(df)}")
+    if ward_no is not None:
+        df = df[df["ward_no"] == ward_no]
+        logger.info(f"Filtered by ward_no={ward_no}, rows: {len(df)}")
+    if polling_center_code is not None:
+        df = df[df["polling_center_code"] == polling_center_code]
+        logger.info(f"Filtered by polling_center_code={polling_center_code}, rows: {len(df)}")
+
+    # Convert to list of dictionaries, handling NaN values
+    voting_centers = []
+    for _, row in df.iterrows():
+        record = {
+            "area_no": int(row["area_no"]) if pd.notna(row["area_no"]) else None,
+            "district": str(row["district"]) if pd.notna(row["district"]) else None,
+            "province": str(row["province"]) if pd.notna(row["province"]) else None,
+            "palika_type": str(row["palika_type"]) if pd.notna(row["palika_type"]) else None,
+            "palika_name": str(row["palika_name"]) if pd.notna(row["palika_name"]) else None,
+            "ward_no": int(row["ward_no"]) if pd.notna(row["ward_no"]) else None,
+            "polling_center_code": int(row["polling_center_code"]) if pd.notna(row["polling_center_code"]) else None,
+            "polling_center_name": str(row["polling_center_name"]) if pd.notna(row["polling_center_name"]) else None,
+            "sub_center": str(row["sub_center"]) if pd.notna(row["sub_center"]) else None,
+            "voter_count": int(row["voter_count"]) if pd.notna(row["voter_count"]) else 0,
+            "voter_from_serial": int(row["voter_from_serial"]) if pd.notna(row["voter_from_serial"]) else 0,
+            "voter_to_serial": int(row["voter_to_serial"]) if pd.notna(row["voter_to_serial"]) else 0,
+            "source_file": str(row["source_file"]) if pd.notna(row["source_file"]) else None,
+            "language": str(row["language"]) if pd.notna(row["language"]) else None,
+        }
+        voting_centers.append(record)
+
+    # Calculate summary statistics
+    total_voters = sum(center["voter_count"] for center in voting_centers)
+    voters_from_serial = min((center["voter_from_serial"] for center in voting_centers if center["voter_from_serial"] > 0), default=0)
+    voters_to_serial = max((center["voter_to_serial"] for center in voting_centers if center["voter_to_serial"] > 0), default=0)
+
+    # Build applied filters dict
+    filtered_by = {}
+    if province:
+        filtered_by["province"] = province
+    if district:
+        filtered_by["district"] = district
+    if election_area is not None:
+        filtered_by["election_area"] = str(election_area)
+    if palika_name:
+        filtered_by["palika_name"] = palika_name
+    if ward_no is not None:
+        filtered_by["ward_no"] = str(ward_no)
+    if polling_center_code is not None:
+        filtered_by["polling_center_code"] = str(polling_center_code)
+
+    summary = {
+        "total_centers": len(voting_centers),
+        "total_voters": total_voters,
+        "voters_from_serial": voters_from_serial,
+        "voters_to_serial": voters_to_serial,
+        "filtered_by": filtered_by
+    }
+
+    logger.info(f"Returning {len(voting_centers)} voting centers with {total_voters} total voters")
+
+    return {
+        "voting_centers": voting_centers,
+        "summary": summary
+    }
 
 
 @app.get(f"{API_V1_PREFIX}/longitudinal/compare")

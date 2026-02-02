@@ -230,6 +230,15 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
     return () => cancelAnimationFrame(timer);
   }, [selectedItem]);
 
+  // Reset voting centers when selected item changes
+  useEffect(() => {
+    setShowVotingCenters(false);
+    setVotingCenters(null);
+    setVotingCentersSummary(null);
+    setVotingCentersError(null);
+    setSelectedPalika(null);
+  }, [selectedItem]);
+
   // Clear "just loaded" highlight after brief delay
   useEffect(() => {
     if (!candidatesJustLoaded) return;
@@ -245,6 +254,11 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
     setCandidateDetails(null);
     setCandidatesError(null);
     setCandidateListFilter({ field: '', value: '' });
+    setActiveTab('candidates');
+    setShowVotingCenters(false);
+    setVotingCenters(null);
+    setVotingCentersSummary(null);
+    setSelectedPalika(null);
 
     if (onFeatureClick) {
       onFeatureClick(feature);
@@ -258,6 +272,43 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
   const handleDrillDown = (feature) => {
     if (onDrillDown && feature.properties.drilldown_to) {
       onDrillDown(feature.properties);
+    }
+  };
+
+  const [votingCenters, setVotingCenters] = useState(null);
+  const [votingCentersSummary, setVotingCentersSummary] = useState(null);
+  const [votingCentersLoading, setVotingCentersLoading] = useState(false);
+  const [votingCentersError, setVotingCentersError] = useState(null);
+  const [showVotingCenters, setShowVotingCenters] = useState(false);
+  const [selectedPalika, setSelectedPalika] = useState(null); // For expanded palika details
+  const [activeTab, setActiveTab] = useState('candidates'); // 'candidates' or 'voting-centers'
+
+  // Load voting centers for the current constituency
+  const loadVotingCenters = async () => {
+    if (!selectedItem || currentLevel !== 'constituency') return;
+
+    const props = selectedItem.properties || {};
+    const district = props.district;
+    const province = props.province;
+    const electionArea = getConstituencyNumber(props.display_name || props.name);
+
+    setVotingCentersLoading(true);
+    setVotingCentersError(null);
+    setVotingCenters(null);
+    setVotingCentersSummary(null);
+    setShowVotingCenters(true);
+
+    try {
+      const { getVotingCenters } = await import('../services/api');
+      const response = await getVotingCenters({ province, district, electionArea });
+      setVotingCenters(response.voting_centers);
+      setVotingCentersSummary(response.summary);
+    } catch (err) {
+      setVotingCentersError(err?.message || 'Failed to load voting centers');
+      setVotingCenters(null);
+      setVotingCentersSummary(null);
+    } finally {
+      setVotingCentersLoading(false);
     }
   };
 
@@ -549,27 +600,29 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
       {/* Mobile: tap-to-close overlay when detail panel is open (panel has z-40 so it stays on top) */}
       {selectedItem && (
         <div
-          className="sm:hidden fixed inset-0 z-30 bg-black/40"
+          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
           onClick={() => {
             setSelectedItem(null);
             setCandidateDetails(null);
             setCandidatesError(null);
             setCandidateListFilter({ field: '', value: '' });
+            setShowVotingCenters(false);
+            setVotingCenters(null);
+            setVotingCentersSummary(null);
+            setVotingCentersError(null);
+            setActiveTab('candidates');
           }}
           aria-hidden="true"
         />
       )}
 
-      {/* Selected item detail panel — on mobile: fixed bottom sheet overlay so cards area stays full height; on sm+: inline */}
+      {/* Full Modal for selected item details */}
       {selectedItem && (
         <div
           ref={detailPanelRef}
           className={`
-            bg-white border-t-2 shadow-[0_-4px_16px_rgba(30,58,95,0.06)] transition-all duration-300
-            sm:flex-none sm:shrink-0
-            fixed sm:relative inset-x-0 bottom-0 z-40 sm:z-auto rounded-t-xl sm:rounded-none
-            max-h-[85vh] sm:max-h-none
-            ${candidatesJustLoaded ? 'border-[#16a34a] ring-2 ring-[#16a34a]/20' : 'border-[#1e3a5f]/20'}
+            fixed inset-4 z-50 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col
+            ${candidatesJustLoaded ? 'ring-2 ring-[#16a34a]/20' : 'ring-2 ring-[#1e3a5f]/10'}
           `}
           aria-live="polite"
           aria-label={candidatesLoading
@@ -579,20 +632,81 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
               : undefined
           }
         >
-          <div className="flex items-start justify-between gap-2 sm:gap-4 p-3 sm:p-4 max-h-[75vh] sm:max-h-80 overflow-y-auto overscroll-contain">
-            <div className="flex-1 min-w-0">
+          <div className="flex flex-col min-h-0 flex-1 p-3 sm:p-4">
+            {/* Header - Title and Close button */}
+            <div className="flex items-start gap-2 sm:gap-4 mb-4 shrink-0">
+              <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-base text-[#1e3a5f]">
                 {language === 'en'
                   ? (selectedItem.properties.display_name_en || selectedItem.properties.name_en || selectedItem.properties.display_name || selectedItem.properties.name)
                   : (selectedItem.properties.display_name || selectedItem.properties.name)}
               </h3>
+              </div>
+            <button
+              onClick={() => {
+                setSelectedItem(null);
+                setCandidateDetails(null);
+                setCandidatesError(null);
+                setCandidateListFilter({ field: '', value: '' });
+                setShowVotingCenters(false);
+                setVotingCenters(null);
+                setVotingCentersSummary(null);
+                setVotingCentersError(null);
+                setActiveTab('candidates');
+              }}
+              className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center hover:bg-[#1e3a5f]/10 rounded-full shrink-0 text-[#1e3a5f]/80 hover:text-[#b91c1c] touch-manipulation"
+              aria-label={language === 'en' ? 'Close' : 'बन्द गर्नुहोस्'}
+            >
+              <IconClose className="w-5 h-5 sm:w-4 sm:h-4" />
+            </button>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+              <div className="min-w-0">
               {currentLevel === 'constituency' && (
-                <p className="text-xs text-[#1e3a5f]/60 mt-0.5">
+                <p className="text-xs text-[#1e3a5f]/60 mb-3">
                   {language === 'en' ? 'Candidates in this election area' : 'यस निर्वाचन क्षेत्रका उम्मेदवार'}
                 </p>
               )}
 
               {currentLevel === 'constituency' && (
+                <>
+                  {/* Tab Navigation */}
+                  <div className="mb-3 border-b border-[#1e3a5f]/20 shrink-0">
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => {
+                          setActiveTab('candidates');
+                        }}
+                        className={`pb-2 text-sm font-medium transition-colors ${
+                          activeTab === 'candidates'
+                            ? 'text-[#b91c1c] border-b-2 border-[#b91c1c]'
+                            : 'text-[#1e3a5f]/60 hover:text-[#1e3a5f]'
+                        }`}
+                      >
+                        {language === 'en' ? 'Candidates' : 'उम्मेदवार'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveTab('voting-centers');
+                          if (!showVotingCenters) {
+                            loadVotingCenters();
+                          }
+                        }}
+                        className={`pb-2 text-sm font-medium transition-colors ${
+                          activeTab === 'voting-centers'
+                            ? 'text-[#b91c1c] border-b-2 border-[#b91c1c]'
+                            : 'text-[#1e3a5f]/60 hover:text-[#1e3a5f]'
+                        }`}
+                      >
+                        {language === 'en' ? 'Voting Centers' : 'मतदान केन्द्र'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tab Content: Candidates */}
+                  {activeTab === 'candidates' && (
                 <div className="mt-3">
                   {candidatesLoading && (
                     <div className="flex flex-col items-center gap-4 py-6" role="status" aria-label={language === 'en' ? 'Loading candidates' : 'उम्मेदवार लोड हुँदैछ'}>
@@ -629,7 +743,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                         </div>
                       )}
                       {/* Filter row */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <div className="flex flex-wrap items-center gap-2 mb-3 shrink-0">
                         <select
                           value={candidateListFilter.field}
                           onChange={(e) => setCandidateListFilter({ field: e.target.value, value: '' })}
@@ -665,8 +779,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                           {filteredCandidates.length} {language === 'en' ? 'of' : '/'} {Object.values(candidateDetails.candidates || {}).length}
                         </span>
                       </div>
-                      <div className="max-h-[min(40vh,12rem)] sm:max-h-52 overflow-y-auto pr-1 -mr-1">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         {filteredCandidates.map((candidate, idx) => {
                           const name = candidate.candidate_name ?? 'Unknown';
                           const parts = name.trim().split(' ').filter(Boolean);
@@ -741,30 +854,209 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                           );
                         })}
                       </div>
-                    </div>
                     </>
                   )}
                 </div>
+                  )}
+
+                  {/* Tab Content: Voting Centers */}
+                  {activeTab === 'voting-centers' && (
+                    <div className="mt-3">
+                      {votingCentersLoading && (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#1e3a5f]/20 border-t-[#b91c1c]" />
+                          <p className="ml-2 text-sm text-[#1e3a5f]/70">{language === 'en' ? 'Loading...' : 'लोड हुँदैछ...'}</p>
+                        </div>
+                      )}
+
+                      {votingCentersError && (
+                        <p className="text-sm text-[#b91c1c]">{votingCentersError}</p>
+                      )}
+
+                      {!votingCentersLoading && votingCenters && votingCenters.length > 0 && (
+                        <div className="space-y-2">
+                          {!selectedPalika ? (
+                            // First level: Show aggregated view by palika
+                            <div className="space-y-2">
+                              {(() => {
+                                // Aggregate by palika_name
+                                const palikaMap = {};
+                                votingCenters.forEach(center => {
+                                  const palika = center.palika_name || 'Unknown';
+                                  if (!palikaMap[palika]) {
+                                    palikaMap[palika] = {
+                                      palika_name: palika,
+                                      centers: [],
+                                      total_voters: 0,
+                                      wards: new Set()
+                                    };
+                                  }
+                                  palikaMap[palika].centers.push(center);
+                                  palikaMap[palika].total_voters += center.voter_count || 0;
+                                  if (center.ward_no) palikaMap[palika].wards.add(center.ward_no);
+                                });
+
+                                const palikaList = Object.values(palikaMap).sort((a, b) =>
+                                  b.total_voters - a.total_voters
+                                );
+
+                                const totalVotersInConstituency = palikaList.reduce((sum, palika) => sum + palika.total_voters, 0);
+
+                                return (
+                                  <>
+                                    {palikaList.map((palika, idx) => (
+                                      <div
+                                        key={`${palika.palika_name}-${idx}`}
+                                        onClick={() => setSelectedPalika(palika.palika_name)}
+                                        className="p-3 rounded-lg border border-[#1e3a5f]/12 bg-[#1e3a5f]/[0.02] hover:border-[#1e3a5f]/25 cursor-pointer transition-colors"
+                                      >
+                                        <div className="flex justify-between items-start gap-2">
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-sm font-semibold text-[#1e3a5f] mb-1 truncate">
+                                              {palika.palika_name}
+                                            </div>
+                                            <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-[#1e3a5f]/60">
+                                              <span>{palika.centers.length} {language === 'en' ? 'centers' : 'केन्द्र'}</span>
+                                              <span>· {Array.from(palika.wards).sort((a, b) => a - b).join(', ')} {language === 'en' ? 'wards' : 'वार्ड'}</span>
+                                            </div>
+                                          </div>
+                                          <div className="shrink-0 text-right">
+                                            <div className="text-base font-bold text-[#1e3a5f]">
+                                              {palika.total_voters.toLocaleString()}
+                                            </div>
+                                            <div className="text-[10px] text-[#1e3a5f]/60">
+                                              {language === 'en' ? 'voters' : 'मतदाता'}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                    <div className="mt-4 p-4 rounded-lg bg-[#1e3a5f]/5 border border-[#1e3a5f]/10">
+                                      <div className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                          <div className="text-xs text-[#1e3a5f]/60">
+                                            {language === 'en' ? 'Total Centers' : 'कुल केन्द्र'}
+                                          </div>
+                                          <div className="text-2xl font-bold text-[#1e3a5f]">
+                                            {votingCenters.length.toLocaleString()}
+                                          </div>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                          <div className="text-xs text-[#1e3a5f]/60">
+                                            {language === 'en' ? 'Total Voters in Constituency' : 'निर्वाचन क्षेत्रका कुल मतदाता'}
+                                          </div>
+                                          <div className="text-2xl font-bold text-[#b91c1c]">
+                                            {totalVotersInConstituency.toLocaleString()}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="mt-3 text-xs text-[#1e3a5f]/50">
+                                        {language === 'en' ? 'Across all palikas' : 'सबै पालिकाहरू मिलेर'}
+                                      </div>
+                                    </div>
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          ) : (
+                            // Second level: Show detailed centers for selected palika
+                            <div>
+                              <button
+                                onClick={() => setSelectedPalika(null)}
+                                className="mb-3 text-xs text-[#1e3a5f]/70 hover:text-[#1e3a5f] flex items-center gap-1"
+                              >
+                                <span aria-hidden>←</span>
+                                {language === 'en' ? 'Back to all palikas' : 'सबै पालिकामा जानुहोस्'}
+                              </button>
+                              <div className="mb-2 px-3 py-2 rounded-lg bg-[#1e3a5f]/10">
+                                <div className="text-sm font-semibold text-[#1e3a5f]">
+                                  {selectedPalika}
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                {votingCenters
+                                  .filter(center => center.palika_name === selectedPalika)
+                                  .map((center, idx) => (
+                                    <div
+                                      key={`${center.polling_center_code}-${idx}`}
+                                      className="p-2.5 rounded-lg border border-[#1e3a5f]/12 bg-[#1e3a5f]/[0.02] hover:border-[#1e3a5f]/25 transition-colors"
+                                    >
+                                      <div className="flex justify-between items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[11px] font-semibold text-[#1e3a5f]">
+                                              {center.polling_center_name}
+                                            </span>
+                                            {center.sub_center && (
+                                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#1e3a5f]/10 text-[#1e3a5f]/80">
+                                                {center.sub_center}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-[#1e3a5f]/60">
+                                            {center.ward_no && (
+                                              <span>Ward {center.ward_no}</span>
+                                            )}
+                                            {center.polling_center_code && (
+                                              <span>· Code: {center.polling_center_code}</span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div className="shrink-0 text-right">
+                                          <div className="text-base font-bold text-[#1e3a5f]">
+                                            {center.voter_count.toLocaleString()}
+                                          </div>
+                                          <div className="text-[10px] text-[#1e3a5f]/60">
+                                            {language === 'en' ? 'voters' : 'मतदाता'}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {center.voter_from_serial && center.voter_to_serial && (
+                                        <div className="mt-1 text-[10px] text-[#1e3a5f]/50">
+                                          {language === 'en' ? 'Serial:' : 'सिरियल:'} {center.voter_from_serial} - {center.voter_to_serial}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                              </div>
+                              <div className="mt-3 p-3 rounded-lg bg-[#1e3a5f]/5 border border-[#1e3a5f]/10">
+                                <div className="flex justify-between items-center">
+                                  <div className="text-xs text-[#1e3a5f]/60">
+                                    {language === 'en' ? 'Total Voters in this Palika' : 'यस पालिकाका कुल मतदाता'}
+                                  </div>
+                                  <div className="text-lg font-bold text-[#b91c1c]">
+                                    {votingCenters
+                                      .filter(center => center.palika_name === selectedPalika)
+                                      .reduce((sum, center) => sum + (center.voter_count || 0), 0)
+                                      .toLocaleString()}
+                                  </div>
+                                </div>
+                                <p className="text-xs text-[#1e3a5f]/50 mt-2">
+                                  {votingCenters.filter(center => center.palika_name === selectedPalika).length} {language === 'en' ? 'centers in this palika' : 'यो पालिकामा केन्द्र'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {!votingCentersLoading && votingCenters && votingCenters.length === 0 && (
+                        <p className="text-sm text-[#1e3a5f]/70">
+                          {language === 'en' ? 'No voting centers found for this constituency' : 'यो निर्वाचन क्षेत्रका लागि कुनै मतदान केन्द्र फेला परेन'}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
 
               {currentLevel !== 'constituency' && (
-                <p className="text-xs text-[#1e3a5f]/55 mt-3">
+                <p className="text-xs text-[#1e3a5f]/55">
                   {language === 'en' ? 'Click a card and drill down to see candidates.' : 'निर्वाचन क्षेत्र हेर्न कार्डमा क्लिक गर्नुहोस्।'}
                 </p>
               )}
+              </div>
             </div>
-            <button
-              onClick={() => {
-                setSelectedItem(null);
-                setCandidateDetails(null);
-                setCandidatesError(null);
-                setCandidateListFilter({ field: '', value: '' });
-              }}
-              className="min-w-[44px] min-h-[44px] p-2 flex items-center justify-center hover:bg-[#1e3a5f]/10 rounded-full shrink-0 text-[#1e3a5f]/80 hover:text-[#b91c1c] touch-manipulation"
-              aria-label={language === 'en' ? 'Close' : 'बन्द गर्नुहोस्'}
-            >
-              <IconClose className="w-5 h-5 sm:w-4 sm:h-4" />
-            </button>
           </div>
         </div>
       )}
