@@ -1,9 +1,9 @@
 # Deploy to Digital Ocean Droplet
 
-## Quick: serve electionnepal.subsy.tech on 165.22.215.152
+## Quick: serve nepalelection.subsy.tech on 165.22.215.152
 
-1. **DNS**: Point **electionnepal.subsy.tech** to **165.22.215.152** (A record). DigitalOcean/your DNS provider handles this; no extra DNS steps on the server.
-2. **On the droplet**: Install Nginx, add a `server { server_name electionnepal.subsy.tech; ... proxy_pass http://127.0.0.1:8000; }` block, reload Nginx, then run `certbot --nginx -d electionnepal.subsy.tech` for HTTPS.  
+1. **DNS**: Point **nepalelection.subsy.tech** to **165.22.215.152** (A record). DigitalOcean/your DNS provider handles this; no extra DNS steps on the server.
+2. **On the droplet**: Install Nginx, add a `server { server_name nepalelection.subsy.tech; ... proxy_pass http://127.0.0.1:8000; }` block, reload Nginx, then run `certbot --nginx -d nepalelection.subsy.tech` for HTTPS.  
    Full steps are in **Section 5** below.
 
 ---
@@ -86,9 +86,9 @@ Check logs: `docker compose logs -f`
 
 The app will be available at `http://your-droplet-ip:8000`.
 
-## 5. Serve the domain (electionnepal.subsy.tech)
+## 5. Serve the domain (nepalelection.subsy.tech)
 
-DNS for **electionnepal.subsy.tech** should point to your droplet IP (**165.22.215.152**). On the droplet, configure Nginx so the server responds to that hostname.
+DNS for **nepalelection.subsy.tech** should point to your droplet IP (**165.22.215.152**). On the droplet, configure Nginx so the server responds to that hostname.
 
 ### 5a. Install Nginx and Certbot (if not already)
 
@@ -97,12 +97,12 @@ sudo apt-get update
 sudo apt-get install -y nginx certbot python3-certbot-nginx
 ```
 
-### 5b. Nginx site for electionnepal.subsy.tech
+### 5b. Nginx site for nepalelection.subsy.tech
 
 Create a site config (or replace the default):
 
 ```bash
-sudo nano /etc/nginx/sites-available/electionnepal
+sudo nano /etc/nginx/sites-available/nepalelection
 ```
 
 Paste (use your domain; replace if you use a different one):
@@ -110,7 +110,7 @@ Paste (use your domain; replace if you use a different one):
 ```nginx
 server {
     listen 80;
-    server_name electionnepal.subsy.tech;
+    server_name nepalelection.subsy.tech;
     location / {
         proxy_pass http://127.0.0.1:8000;
         proxy_http_version 1.1;
@@ -125,7 +125,7 @@ server {
 Enable the site and test:
 
 ```bash
-sudo ln -sf /etc/nginx/sites-available/electionnepal /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/nepalelection /etc/nginx/sites-enabled/
 # If you had default enabled and want only this domain on this server:
 # sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx
@@ -134,12 +134,12 @@ sudo nginx -t && sudo systemctl reload nginx
 ### 5c. SSL with Let's Encrypt
 
 ```bash
-sudo certbot --nginx -d electionnepal.subsy.tech
+sudo certbot --nginx -d nepalelection.subsy.tech
 ```
 
 Follow the prompts (email, agree to terms). Certbot will configure HTTPS and redirect HTTP → HTTPS.
 
-After this, **https://electionnepal.subsy.tech** will serve your app (Nginx proxies to the app on port 8000).
+After this, **https://nepalelection.subsy.tech** will serve your app (Nginx proxies to the app on port 8000).
 
 ### Optional: also serve by droplet IP
 

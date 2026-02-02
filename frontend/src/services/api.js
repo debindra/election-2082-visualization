@@ -3,7 +3,7 @@
  * In dev, use empty string so Vite proxy (/api -> localhost:8000) is used (avoids CORS).
  * In prod: VITE_API_URL if set; else same origin (empty string). Same-origin works when
  * Nginx serves HTTPS and proxies / to the app on :8000 (no HTTPS on :8000), so API calls
- * must go to e.g. https://electionnepal.subsy.tech/api/v1/... not ...:8000.
+ * must go to e.g. https://nepalelection.subsy.tech/api/v1/... not ...:8000.
  */
 import axios from 'axios';
 
