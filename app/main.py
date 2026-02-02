@@ -150,8 +150,8 @@ async def add_security_headers(request, call_next):
         "img-src 'self' data: blob:; "
         "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 "
         "http://165.22.215.152 http://165.22.215.152:8000 https://165.22.215.152 https://165.22.215.152:8000 "
-        "https://electionnepal.subsy.tech https://electionnepal.subsy.tech:8000 "
-        "http://electionnepal.subsy.tech http://electionnepal.subsy.tech:8000"
+        "https://nepalelection.subsy.tech https://nepalelection.subsy.tech:8000 "
+        "http://nepalelection.subsy.tech http://nepalelection.subsy.tech:8000"
     )
     return response
 
