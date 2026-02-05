@@ -250,22 +250,27 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
   const CARD_HEADER_BG = 'bg-[#1e3a5f]';
 
   const handleCardClick = (feature) => {
-    setSelectedItem(feature);
-    setCandidateDetails(null);
-    setCandidatesError(null);
-    setCandidateListFilter({ field: '', value: '' });
-    setActiveTab('candidates');
-    setShowVotingCenters(false);
-    setVotingCenters(null);
-    setVotingCentersSummary(null);
-    setSelectedPalika(null);
-
-    if (onFeatureClick) {
-      onFeatureClick(feature);
-    }
-
+    // For constituency level (election area): show popup
     if (currentLevel === 'constituency') {
+      setSelectedItem(feature);
+      setCandidateDetails(null);
+      setCandidatesError(null);
+      setCandidateListFilter({ field: '', value: '' });
+      setActiveTab('candidates');
+      setShowVotingCenters(false);
+      setVotingCenters(null);
+      setVotingCentersSummary(null);
+      setSelectedPalika(null);
+
+      if (onFeatureClick) {
+        onFeatureClick(feature);
+      }
+
       loadCandidatesForFeature(feature);
+    }
+    // For province and district levels: trigger drill down
+    else {
+      handleDrillDown(feature);
     }
   };
 
@@ -597,10 +602,10 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
       </div>
 
-      {/* Mobile: tap-to-close overlay when detail panel is open (panel has z-40 so it stays on top) */}
-      {selectedItem && (
+      {/* Popup backdrop overlay */}
+      {selectedItem && currentLevel === 'constituency' && (
         <div
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
           onClick={() => {
             setSelectedItem(null);
             setCandidateDetails(null);
@@ -616,8 +621,8 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
         />
       )}
 
-      {/* Full Modal for selected item details */}
-      {selectedItem && (
+      {/* Full Modal for selected item details (constituency only) */}
+      {selectedItem && currentLevel === 'constituency' && (
         <div
           ref={detailPanelRef}
           className={`
