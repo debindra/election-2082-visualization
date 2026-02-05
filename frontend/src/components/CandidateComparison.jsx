@@ -42,7 +42,7 @@ function getDetailFilterFields(language) {
   ];
 }
 
-const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElectionAreas, language = 'ne', viewContext = null }) => {
+const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElectionAreas, language = 'ne', viewContext = null, electionYear = 2082 }) => {
   const DETAIL_FILTER_FIELDS = useMemo(() => getDetailFilterFields(language), [language]);
   const [selectedCandidates, setSelectedCandidates] = useState([]);
   const [currentTyping, setCurrentTyping] = useState('');
@@ -75,7 +75,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
     setSearching(true);
     setSearchError(null);
     try {
-      const data = await searchCandidates(query, AUTOCOMPLETE_LIMIT);
+      const data = await searchCandidates(query, AUTOCOMPLETE_LIMIT, electionYear);
       setSuggestions(Array.isArray(data) ? data : []);
     } catch (err) {
       setSuggestions([]);
@@ -119,7 +119,7 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
     setError(null);
 
     try {
-      const data = await compareCandidates(ids);
+      const data = await compareCandidates(ids, electionYear);
       setComparisonData(data);
     } catch (err) {
       setError(err.message || 'Failed to compare candidates');
@@ -433,6 +433,28 @@ const CandidateComparison = ({ filters = {}, onFiltersChange, onNavigateToElecti
                     )}
                     {candidate.election_year && (
                       <div><strong>{language === 'en' ? 'Election year:' : 'निर्वाचन वर्ष:'}</strong> {candidate.election_year}</div>
+                    )}
+                    {candidate.votes_received != null && (
+                      <div><strong>{language === 'en' ? 'Votes:' : 'मत:'}</strong> {candidate.votes_received.toLocaleString()}</div>
+                    )}
+                    {candidate.votes_percentage != null && (
+                      <div><strong>{language === 'en' ? 'Vote share:' : 'मत शेयर:'}</strong> {candidate.votes_percentage.toFixed(1)}%</div>
+                    )}
+                    {candidate.is_winner !== undefined && candidate.is_winner !== null && (
+                      <div className="mt-2 pt-2 border-t border-[#1e3a5f]/15">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md font-medium ${
+                          candidate.is_winner
+                            ? 'bg-[#b91c1c]/15 text-[#b91c1c]'
+                            : 'bg-[#1e3a5f]/10 text-[#1e3a5f]/70'
+                        }`}>
+                          <svg className={`w-5 h-5 ${candidate.is_winner ? 'text-[#b91c1c]' : 'text-[#1e3a5f]/70'}`} fill="currentColor" viewBox="0 0 20 20" aria-hidden>
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 00016zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.414l5.293 5.293a1 1 0 010 1.414l-5.293 5.293a1 1 0 00-1.414 1.414l-5.293-5.293a1 1 0 001 1v4a1 1 0 001 1h3.586l-4.293 4.293a1 1 0 00-1.414-1.414l-5.293-5.293a1 1 0 00-1.414 1.414l-5.293-5.293a1 1 0 001 1v4a1 1 0 001 1h3.586l-4.293 4.293a1 1 0 00-1.414-1.414l-5.293-5.293a1 1 0 00-1.414 1.414l-5.293-5.293a1 1 0 00-1.414 1.414L8.586 10H5a1 1 0 00-1 1v4a1 1 0 001 1h3.586l-4.293 4.293z" clipRule="evenodd" />
+                          </svg>
+                          {language === 'en'
+                            ? (candidate.is_winner ? 'Winner' : 'Lost')
+                            : (candidate.is_winner ? 'विजेता' : 'पराजित')}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>

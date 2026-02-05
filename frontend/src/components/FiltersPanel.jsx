@@ -59,9 +59,22 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
 
   const handleChange = (key, value) => {
     let newFilters = { ...localFilters, [key]: value };
-    
+
     // Reset dependent filters when parent changes
-    if (key === 'province') {
+    if (key === 'electionYear') {
+      // Reset all dependent filters when election year changes
+      newFilters = {
+        ...newFilters,
+        province: null,
+        district: null,
+        party: null,
+        independent: null,
+        ageMin: null,
+        ageMax: null,
+        gender: null,
+        educationLevel: null,
+      };
+    } else if (key === 'province') {
       newFilters = {
         ...newFilters,
         district: null,
@@ -73,7 +86,7 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
         level: value ? 'constituency' : 'district',
       };
     }
-    
+
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -130,6 +143,21 @@ const FiltersPanel = ({ filters, onFiltersChange, language = 'ne' }) => {
         <p className="text-xs font-semibold text-[#1e3a5f]/70 uppercase tracking-wide">
           Election context
         </p>
+
+        {/* Election Year */}
+        <div>
+          <label className="block text-xs font-medium text-[#1e3a5f]/90 mb-1.5">
+            {language === 'en' ? 'Election year' : 'निर्वाचन वर्ष'}
+          </label>
+          <select
+            value={localFilters.electionYear || ''}
+            onChange={(e) => handleChange('electionYear', e.target.value ? parseInt(e.target.value) : null)}
+            className="w-full pl-3 py-2.5 border border-[#1e3a5f]/25 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-white text-sm"
+          >
+            <option value="2082">२०८२ (2082)</option>
+            <option value="2079">२०७९ (2079)</option>
+          </select>
+        </div>
 
         {/* Map View Level */}
         <div className="bg-[#1e3a5f]/5 p-3 rounded-lg border border-[#1e3a5f]/15 min-w-0 overflow-hidden">

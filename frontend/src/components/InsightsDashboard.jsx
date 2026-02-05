@@ -14,8 +14,13 @@ const INSIGHTS_THRESHOLD_PERCENTILE = 0.8;
 
 const CARD_KEYS = { independent: 'independent', competition: 'competition', party: 'party' };
 
-const InsightsDashboard = ({ language = 'ne', viewContext = null }) => {
-  const [year] = useState(ELECTION_YEAR);
+const InsightsDashboard = ({ language = 'ne', viewContext = null, electionYear = ELECTION_YEAR }) => {
+  const [year, setYear] = useState(electionYear);
+
+  // Update year when electionYear prop changes
+  useEffect(() => {
+    setYear(electionYear);
+  }, [electionYear]);
   const [independentWave, setIndependentWave] = useState(null);
   const [competitionPressure, setCompetitionPressure] = useState(null);
   const [partySaturation, setPartySaturation] = useState(null);

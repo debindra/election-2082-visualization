@@ -258,6 +258,7 @@ COLUMN_NORMALIZATION = {
     "candidate name": "candidate_name",
     "candidatename": "candidate_name",
     "candidate full name": "candidate_name",
+    "canidate full name": "candidate_name",  # Handle typo in 2079 data
     "candidate_full_name": "candidate_name",
     "name": "candidate_name",
     "full name": "candidate_name",

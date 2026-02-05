@@ -374,7 +374,10 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                 <LevelIcon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-white/90" />
               </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-base sm:text-xl lg:text-2xl font-bold tracking-tight truncate">{levelInfo.label}</h2>
+                <h2 className="text-base sm:text-xl lg:text-2xl font-bold tracking-tight truncate">
+                  {levelInfo.label}
+                  <span className="text-white/70 font-normal ml-2">({electionYear})</span>
+                </h2>
                 <p className="text-white/80 text-xs sm:text-sm mt-0.5 truncate">
                   {levelInfo.sublabel} · {features.length} {levelInfo.sublabel.toLowerCase()}
                 </p>
@@ -809,6 +812,18 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
 
                               <div className="min-w-0 flex-1">
                                 <p className="text-sm font-medium text-[#1e3a5f] truncate">{name}</p>
+                                {candidate.votes_received && (
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <span className="text-xs font-semibold text-[#b91c1c]">
+                                      {candidate.votes_received.toLocaleString()} {language === 'en' ? 'votes' : 'मत'}
+                                    </span>
+                                    {candidate.votes_percentage && (
+                                      <span className="text-xs font-medium text-[#1e3a5f]/80">
+                                        ({candidate.votes_percentage.toFixed(1)}%)
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                                   {CANDIDATE_FILTER_FIELDS.map(({ key, label, getValue }) => {
                                     const value = getValue(candidate);
@@ -844,9 +859,15 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                                     <ElectionSymbolImage symbolName={candidate.symbol} className="w-6 h-6" />
                                   </span>
                                 )}
-                                {candidate.is_winner && (
-                                  <span className="px-1.5 py-0.5 rounded bg-[#b91c1c]/15 text-[#b91c1c] text-[10px] font-medium">
-                                    {language === 'en' ? 'Winner' : 'विजेता'}
+                                {candidate.is_winner !== undefined && candidate.is_winner !== null && (
+                                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                                    candidate.is_winner
+                                      ? 'bg-[#b91c1c] text-white'
+                                      : 'bg-[#1e3a5f]/10 text-[#1e3a5f]/70'
+                                  }`}>
+                                    {language === 'en'
+                                      ? (candidate.is_winner ? 'Winner' : 'Lost')
+                                      : (candidate.is_winner ? 'विजेता' : 'पराजित')}
                                   </span>
                                 )}
                               </div>

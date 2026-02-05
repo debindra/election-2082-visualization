@@ -497,7 +497,11 @@ function App() {
 
             {activeTab === 'insights' && (
               <div className="h-full min-h-0 bg-white rounded-xl p-3 sm:p-4 lg:p-6 border border-[#1e3a5f]/10 overflow-y-auto" aria-label={language === 'en' ? 'Insights and year demographics' : 'अन्तर्दृष्टि र वर्ष जनसांख्यिकी'}>
-                <InsightsDashboard language={language} viewContext={getViewContext('insights', language)} />
+                <InsightsDashboard
+                  language={language}
+                  viewContext={getViewContext('insights', language)}
+                  electionYear={filters.electionYear}
+                />
               </div>
             )}
 
@@ -512,6 +516,7 @@ function App() {
                   }}
                   language={language}
                   viewContext={getViewContext('compare', language)}
+                  electionYear={filters.electionYear}
                 />
               </div>
             )}
