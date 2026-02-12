@@ -11,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
+import httpx
+from typing import Dict, Any
 
 from app.core.config import API_V1_PREFIX, API_TITLE, API_DESCRIPTION, API_VERSION, ELECTIONS_DIR
 from app.core.settings import settings
@@ -187,6 +189,76 @@ app.include_router(map.router, prefix=API_V1_PREFIX)
 app.include_router(trends.router, prefix=API_V1_PREFIX)
 app.include_router(insights.router, prefix=API_V1_PREFIX)
 app.include_router(compare.router, prefix=API_V1_PREFIX)
+
+
+# RAG Service Proxy Configuration
+RAG_SERVICE_URL = "http://rag-qa:8002"
+rag_client = httpx.AsyncClient(timeout=30.0)
+
+
+@app.get("/rag-api/health")
+async def rag_health_proxy():
+    """
+    Proxy to RAG service health check endpoint.
+    """
+    try:
+        response = await rag_client.get(f"{RAG_SERVICE_URL}/health")
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG health: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/v1/chat")
+async def rag_chat_proxy(request: Dict[str, Any]):
+    """
+    Proxy to RAG service chat endpoint.
+    
+    Allows frontend to access RAG chatbot through the main app on port 8000
+    instead of directly connecting to port 8002.
+    """
+    try:
+        response = await rag_client.post(
+            f"{RAG_SERVICE_URL}/api/v1/chat",
+            json=request,
+            headers={"Content-Type": "application/json"}
+        )
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG chat: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/v1/analytics")
+async def rag_analytics_proxy(request: Dict[str, Any]):
+    """
+    Proxy to RAG service analytics endpoint.
+    
+    Allows frontend to access RAG analytics through the main app on port 8000.
+    """
+    try:
+        response = await rag_client.post(
+            f"{RAG_SERVICE_URL}/api/v1/analytics",
+            json=request,
+            headers={"Content-Type": "application/json"}
+        )
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG analytics: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/reset_session")
+async def rag_reset_session_proxy():
+    """
+    Proxy to RAG service session reset endpoint.
+    """
+    try:
+        response = await rag_client.post(f"{RAG_SERVICE_URL}/api/reset_session")
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG session reset: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
 
 
 # Pydantic models for API responses

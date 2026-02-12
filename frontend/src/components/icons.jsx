@@ -287,7 +287,7 @@ const PARTY_IMAGES = {
   'Communist Party of Nepal (Unified Marxist-Leninist)': '/symbols/CPN-UML.png',
   'नेपाली कम्युनिष्ट पार्टी': '/symbols/Nepali-Communist-Party-removebg-preview.png',
   'Nepali Communist Party': '/symbols/Nepali-Communist-Party-removebg-preview.png',
-  'नेपाल काँग्रेस': '/symbols/Nepali-Congress.png',
+  'नेपाली काँग्रेस': '/symbols/Nepali-Congress.png',
   'Nepali Congress': '/symbols/Nepali-Congress.png',
   'राष्ट्रिय स्वतन्त्र पार्टी': '/symbols/ghanti.png',
   'Rastriya Swatantra Party': '/symbols/ghanti.png',
