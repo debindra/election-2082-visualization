@@ -9,3 +9,15 @@ services:
       - ./data/elections:/app/data/elections:ro
       - ./data/geojson:/app/data/geojson:ro
     restart: unless-stopped
+
+  rag-qa:
+    build:
+      context: ./rag-qa
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./data/elections:/app/data/elections:ro
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+    restart: unless-stopped

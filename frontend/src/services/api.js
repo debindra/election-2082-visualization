@@ -246,4 +246,143 @@ export const getVotingCenters = async (filters = {}) => {
   return response.data;
 };
 
+/**
+ * Get candidates list for display in traditional format
+ * @param {Object} filters - Filters: electionYear, province, district, party, etc.
+ * @returns {Promise<Object>} Response with candidates list and summary
+ */
+export const getCandidatesList = async (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.electionYear) params.append('election_year', filters.electionYear);
+  if (filters.province) params.append('province', filters.province);
+  if (filters.district) params.append('district', filters.district);
+  if (filters.party) params.append('party', filters.party);
+  if (filters.independent !== null && filters.independent !== undefined) {
+    params.append('independent', filters.independent);
+  }
+  if (filters.ageMin) params.append('age_min', filters.ageMin);
+  if (filters.ageMax) params.append('age_max', filters.ageMax);
+  if (filters.gender) params.append('gender', filters.gender);
+  if (filters.educationLevel) params.append('education_level', filters.educationLevel);
+
+  // Use the existing map endpoint which returns candidates with their data
+  const response = await api.get(`/api/v1/map?${params.toString()}`);
+  // Extract candidates from the response
+  const candidates = response.data.features?.map(feature => feature.properties) || [];
+  
+  return {
+    candidates,
+    summary: {
+      total: candidates.length,
+      year: filters.electionYear
+    }
+  };
+};
+
+/**
+ * RAG QA Service API
+ * Queries the RAG QA service running on port 8002 for candidates and voting center information
+ */
+
+const RAG_API_BASE_URL = import.meta.env.VITE_RAG_API_URL || 
+  (import.meta.env.DEV ? 'http://localhost:8002' : '/rag-api');
+
+const ragApi = axios.create({
+  baseURL: RAG_API_BASE_URL,
+  // Remove default Content-Type header to allow FormData to work correctly
+  // Axios will auto-set the correct Content-Type with boundary for FormData
+});
+
+/**
+ * Query RAG QA service for candidates or voting center information
+ * @param {string} query - User's question in Nepali or English
+ * @param {string|null} sessionId - Session ID for multi-turn conversations (optional)
+ * @param {string|null} mode - Force mode: 'polling', 'candidate', or null for auto-detection
+ * @returns {Promise<Object>} Response with answer, sources, intent, confidence, etc.
+ */
+export const queryRAG = async (query, sessionId = null, mode = null) => {
+  const payload = {
+    query,
+    filters: {},
+    top_k: 10,  // Backend limit is 20, using 10 for good performance
+  };
+
+  const response = await ragApi.post('/api/v1/chat', payload);
+  return response.data;
+};
+
+/**
+ * Reset or clear a RAG QA session
+ * @param {string} sessionId - Session ID to reset
+ * @returns {Promise<Object>} Response status
+ */
+export const resetRAGSession = async (sessionId) => {
+  const response = await ragApi.post('/api/reset_session', { session_id: sessionId });
+  return response.data;
+};
+
+/**
+ * Get RAG QA service health status
+ * @returns {Promise<Object>} Health check response
+ */
+export const checkRAGHealth = async () => {
+  const response = await ragApi.get('/health');
+  return response.data;
+};
+
+/**
+ * Query RAG QA service with image upload (voter card, registration form, etc.)
+ * Extracts text from image using OCR and combines with text query
+ * @param {string} query - User's question in Nepali or English
+ * @param {File} image - Image file to upload (voter card, registration form)
+ * @param {string|null} sessionId - Session ID for multi-turn conversations (optional)
+ * @param {string|null} mode - Force mode: 'polling', 'candidate', or null for auto-detection
+ * @returns {Promise<Object>} Response with answer, sources, OCR metadata
+ */
+export const queryRAGWithImage = async (query, image, sessionId = null, mode = null) => {
+  console.log('queryRAGWithImage called:', {
+    query,
+    hasImage: !!image,
+    image: image ? {
+      name: image.name,
+      type: image.type,
+      size: image.size
+    } : null,
+    sessionId,
+    mode
+  });
+
+  const formData = new FormData();
+  formData.append('query', query);
+  
+  console.log('FormData append query:', query);
+  
+  if (image) {
+    console.log('FormData append image:', image.name, image.type);
+    formData.append('image', image);
+  }
+  
+  if (sessionId) {
+    console.log('FormData append session_id:', sessionId);
+    formData.append('session_id', sessionId);
+  }
+  if (mode) {
+    console.log('FormData append mode:', mode);
+    formData.append('mode', mode);
+  }
+
+  // Log FormData entries for debugging
+  console.log('FormData entries:');
+  for (let [key, value] of formData.entries()) {
+    console.log(`  ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
+  }
+
+  // Don't set Content-Type header for FormData - axios will set it automatically with correct boundary
+  const response = await ragApi.post('/api/query_with_image', formData);
+  
+  console.log('API response:', response);
+  
+  return response.data;
+};
+
 export default api;

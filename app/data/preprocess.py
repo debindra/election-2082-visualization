@@ -358,11 +358,41 @@ def create_election_area_display_name(df: pd.DataFrame) -> pd.DataFrame:
     This matches the format used by election.onlinekhabar.com
     
     Args:
-        df: DataFrame with district and constituency columns
+        df: DataFrame with district and area_no or constituency columns
         
     Returns:
         DataFrame with election_area_display column added
     """
+    # NEW: If area_no column exists, use it directly (faster and more accurate)
+    if "area_no" in df.columns and "district" in df.columns:
+        df = df.copy()
+        
+        # Map Arabic numerals to Nepali numerals
+        arabic_to_nepali = {
+            '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
+            '5': '५', '6': '६', '7': '७', '8': '८', '9': '९'
+        }
+        
+        def create_display_name_from_area_no(row):
+            """Create display name using area_no column directly"""
+            district = row.get("district", "")
+            area_no = row.get("area_no")
+            
+            if pd.notna(district) and pd.notna(area_no):
+                # Convert area_no to Nepali numerals
+                area_no_str = str(int(area_no))
+                nepali_number = ''.join(arabic_to_nepali.get(d, d) for d in area_no_str)
+                return f"{district} - {nepali_number}"
+            elif pd.notna(district):
+                return str(district)
+            else:
+                return ""
+        
+        df["election_area_display"] = df.apply(create_display_name_from_area_no, axis=1)
+        logger.info(f"Created election_area_display from area_no column for {df['election_area_display'].notna().sum()} rows")
+        return df
+    
+    # FALLBACK: If area_no not available, extract from constituency text column (for older data)
     if "constituency" not in df.columns or "district" not in df.columns:
         return df
     

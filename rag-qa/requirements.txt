@@ -1,0 +1,32 @@
+# RAG System Requirements
+
+# Core Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Machine Learning
+sentence-transformers>=2.2.0
+torch>=2.0.0
+numpy>=1.24.0
+faiss-cpu>=1.7.4
+
+# Caching
+redis>=5.0.0
+
+# Database
+# No additional SQLite dependencies (built-in Python)
+
+# Data Processing
+pandas>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+
+# Cross-Encoder for Re-ranking
+sentence-transformers>=2.2.0
+
+# Optional: For GPU support (uncomment if using GPU)
+# faiss-gpu>=1.7.4

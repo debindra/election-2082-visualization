@@ -813,7 +813,7 @@ const MapView = ({ mapData, onFeatureClick, currentLevel, onDrillDown, electionY
                               </div>
 
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-[#1e3a5f] truncate">{name}</p>
+                                <p className="text-sm font-bold text-[#1e3a5f] truncate">{name}</p>
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                                   {CANDIDATE_FILTER_FIELDS.map(({ key, label, getValue }) => {
                                     const value = getValue(candidate);
