@@ -2,10 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import MapView from './components/MapView';
 import FiltersPanel from './components/FiltersPanel';
 import CandidateComparison from './components/CandidateComparison';
+import CandidateListDisplay from './components/CandidateListDisplay';
+import VotingCenterDocument from './components/VotingCenterDocument';
 import InsightsDashboard from './components/InsightsDashboard';
+import ChatBot from './components/ChatBot';
 import Footer from './components/Footer';
 import LegalPage from './components/LegalPage';
-import { getMapData, getElectionSummary } from './services/api';
+import { getMapData, getElectionSummary, getCandidatesList, getVotingCenters } from './services/api';
 
 const ELECTION_YEAR = 2082;
 import { getViewContext } from './config/viewContext';
@@ -14,6 +17,8 @@ import {
   IconBuildingColumns,
   IconMapPin,
   IconUsers,
+  IconSearch,
+  IconTable,
 } from './components/icons';
 
 const LANG_KEY = 'election-viz-lang';
@@ -56,6 +61,9 @@ function App() {
   const [electionSummary, setElectionSummary] = useState(null);
   const [legalPage, setLegalPage] = useState(null);
   const [apiErrorMessage, setApiErrorMessage] = useState(null);
+  const [candidatesList, setCandidatesList] = useState(null);
+  const [votingCentersData, setVotingCentersData] = useState(null);
+  const [loadingList, setLoadingList] = useState(false);
 
   const syncLegalFromHash = useCallback(() => {
     const hash = window.location.hash.slice(1);
@@ -131,6 +139,59 @@ function App() {
     console.log('Feature clicked:', feature.properties);
   };
 
+  // Load candidates list when candidates tab is active
+  useEffect(() => {
+    if (activeTab === 'candidates') {
+      setLoadingList(true);
+      getCandidatesList({
+        electionYear: filters.electionYear,
+        province: filters.province,
+        district: filters.district,
+        party: filters.party,
+        independent: filters.independent,
+        ageMin: filters.ageMin,
+        ageMax: filters.ageMax,
+        gender: filters.gender,
+        educationLevel: filters.educationLevel,
+      })
+        .then((data) => {
+          setCandidatesList(data.candidates);
+        })
+        .catch((err) => {
+          console.error('Failed to load candidates:', err);
+          setCandidatesList([]);
+        })
+        .finally(() => {
+          setLoadingList(false);
+        });
+    }
+  }, [activeTab, filters]);
+
+  // Load voting centers when voting-centers tab is active
+  useEffect(() => {
+    if (activeTab === 'voting-centers') {
+      setLoadingList(true);
+      getVotingCenters({
+        province: filters.province,
+        district: filters.district,
+        electionArea: filters.district, // use district as election area for filtering
+        palikaName: null, // can be added from filters
+        wardNo: null,
+        pollingCenterCode: null,
+      })
+        .then((data) => {
+          setVotingCentersData(data.voting_centers || []);
+        })
+        .catch((err) => {
+          console.error('Failed to load voting centers:', err);
+          setVotingCentersData([]);
+        })
+        .finally(() => {
+          setLoadingList(false);
+        });
+    }
+  }, [activeTab, filters]);
+
   // Handle drill-down from province -> district -> constituency
   const handleDrillDown = useCallback((properties) => {
     const currentLevel = properties.geography_level;
@@ -190,7 +251,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen min-h-dvh flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 overflow-x-hidden">
+    <div className="min-h-dvh flex flex-col bg-gradient-to-br from-[#1e3a5f]/5 to-[#b91c1c]/5 overflow-x-hidden">
       {/* Header — theme: slate blue #1e3a5f, muted red #b91c1c */}
       <header className="bg-white/95 backdrop-blur border-b-2 border-[#1e3a5f] shadow-sm">
         <div className="bg-gradient-to-r from-[#b91c1c]/5 via-transparent to-[#1e3a5f]/5">
@@ -292,6 +353,30 @@ function App() {
               <IconUsers className="w-4 h-4" />
               <span className="hidden sm:inline">{language === 'en' ? 'Compare candidates' : 'उम्मेदवार तुलना'}</span>
               <span className="sm:hidden">{language === 'en' ? 'Compare' : 'तुलना'}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('candidates')}
+              className={`inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-full font-medium transition-all ${
+                activeTab === 'candidates'
+                  ? 'bg-[#b91c1c] text-white shadow-sm'
+                  : 'text-[#1e3a5f]/80 hover:text-[#1e3a5f] hover:bg-white/80'
+              }`}
+            >
+              <IconTable className="w-4 h-4" />
+              <span className="hidden sm:inline">{language === 'en' ? 'Candidates list' : 'उम्मेदवार सूची'}</span>
+              <span className="sm:hidden">{language === 'en' ? 'List' : 'सूची'}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('voting-centers')}
+              className={`inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 rounded-full font-medium transition-all ${
+                activeTab === 'voting-centers'
+                  ? 'bg-[#b91c1c] text-white shadow-sm'
+                  : 'text-[#1e3a5f]/80 hover:text-[#1e3a5f] hover:bg-white/80'
+              }`}
+            >
+              <IconSearch className="w-4 h-4" />
+              <span className="hidden sm:inline">{language === 'en' ? 'Voting centers' : 'मतदान केन्द्र'}</span>
+              <span className="sm:hidden">{language === 'en' ? 'Centers' : 'केन्द्र'}</span>
             </button>
           </div>
         </div>
@@ -515,12 +600,54 @@ function App() {
                 />
               </div>
             )}
+
+            {activeTab === 'candidates' && (
+              <div className="h-full min-h-0 bg-white rounded-xl p-3 sm:p-4 lg:p-6 border border-[#1e3a5f]/10 overflow-auto" aria-label={language === 'en' ? 'Candidates list' : 'उम्मेदवार सूची'}>
+                {loadingList ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1e3a5f]/20 border-t-[#b91c1c] mx-auto"></div>
+                      <p className="mt-6 text-[#1e3a5f] font-medium">{language === 'en' ? 'Loading candidates...' : 'उम्मेदवार लोड गर्दै...'}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <CandidateListDisplay
+                    candidates={candidatesList}
+                    language={language}
+                    title={language === 'en' ? `Election Candidates - ${filters.electionYear}` : `निर्वाचन उम्मेदवार - ${filters.electionYear}`}
+                    subtitle={filters.district || filters.province || language === 'en' ? 'All areas' : 'सबै क्षेत्र'}
+                    showFilters={true}
+                  />
+                )}
+              </div>
+            )}
+
+            {activeTab === 'voting-centers' && (
+              <div className="h-full min-h-0 bg-white rounded-xl p-3 sm:p-4 lg:p-6 border border-[#1e3a5f]/10 overflow-auto" aria-label={language === 'en' ? 'Voting centers' : 'मतदान केन्द्र'}>
+                {loadingList ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#1e3a5f]/20 border-t-[#b91c1c] mx-auto"></div>
+                      <p className="mt-6 text-[#1e3a5f] font-medium">{language === 'en' ? 'Loading voting centers...' : 'मतदान केन्द्र लोड गर्दै...'}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <VotingCenterDocument
+                    centers={votingCentersData}
+                    language={language}
+                    title={language === 'en' ? 'Voting Centers' : 'मतदान केन्द्र'}
+                    subtitle={filters.district || filters.province || language === 'en' ? 'All areas' : 'सबै क्षेत्र'}
+                    showFilters={true}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </main>
       </div>
 
       {apiErrorMessage && (
-        <div className="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-md z-50 flex items-center gap-2 px-4 py-3 bg-[#b91c1c] text-white text-sm rounded-lg shadow-lg" role="alert">
+        <div className="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-md z-[55] flex items-center gap-2 px-4 py-3 bg-[#b91c1c] text-white text-sm rounded-lg shadow-lg" role="alert">
           <span className="flex-1">{apiErrorMessage}</span>
           <button type="button" onClick={() => setApiErrorMessage(null)} className="shrink-0 underline" aria-label={language === 'en' ? 'Dismiss' : 'खारेज गर्नुहोस्'}>
             {language === 'en' ? 'Dismiss' : 'खारेज'}
@@ -531,6 +658,9 @@ function App() {
       {legalPage && (
         <LegalPage pageKey={legalPage} language={language} onClose={closeLegalPage} />
       )}
+
+      {/* ChatBot - Floating AI Assistant */}
+      <ChatBot language={language} />
 
       <Footer language={language} onLegalLinkClick={handleLegalLinkClick} />
     </div>

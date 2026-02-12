@@ -8,4 +8,77 @@ services:
       # Mount election CSVs so you can add/update data without rebuilding
       - ./data/elections:/app/data/elections:ro
       - ./data/geojson:/app/data/geojson:ro
+    environment:
+      # Enable RAG proxy
+      - RAG_SERVICE_URL=http://rag-qa:8002
+    depends_on:
+      rag-qa:
+        condition: service_healthy
     restart: unless-stopped
+
+  # Redis service for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - rag-qa-redis:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "redis-cli ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  rag-qa:
+    build:
+      context: ./rag-qa
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    volumes:
+      # Mount election CSVs (read-only for data integrity)
+      - ./data/elections:/app/data/elections:ro
+      # Persistent FAISS index (writable)
+      - rag-qa-index:/app/data/faiss_index
+      # Persistent SQLite database (writable)
+      - rag-qa-db:/app/data/elections
+      # HuggingFace cache for models (persistent across rebuilds)
+      - rag-qa-models:/app/.cache/huggingface
+    environment:
+      # Required: DeepSeek API key
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      # Redis configuration (link to redis service)
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      # Disable reload in production
+      - RAG_RELOAD=false
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Persistent volumes for data persistence
+volumes:
+  rag-qa-index:
+    name: rag-qa-faiss-index
+    driver: local
+
+  rag-qa-db:
+    name: rag-qa-sqlite-db
+    driver: local
+
+  rag-qa-redis:
+    name: rag-qa-redis-data
+    driver: local
+
+  rag-qa-models:
+    name: rag-qa-model-cache
+    driver: local

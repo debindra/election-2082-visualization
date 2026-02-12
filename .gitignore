@@ -36,9 +36,13 @@ ENV/
 # Environment variables
 .env
 .env.local
+.env.*.local
 
 # Data files (user-provided)
 data/geospatial/*
+data/elections/*.csv
+!data/elections/election_candidates-*.csv
+!data/elections/voting_centers.csv
 
 # Logs
 *.log
@@ -52,3 +56,57 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+.coverage.*
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/vite-*.log
+
+# RAG/Vector Database
+rag-qa/chroma_db/
+rag-qa/chroma/
+rag-qa/faiss/
+rag-qa/*.index
+rag-qa/*.pkl
+rag-qa/*.parquet
+rag-qa/cache/
+rag-qa/.cache/
+rag-qa/vector_store/
+rag-qa/embeddings/
+rag-qa/outputs/
+
+# LLM Cache
+rag-qa/.llm_cache/
+rag-qa/*.cache
+rag-qa/langchain_cache/
+
+# Models & Weights
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+*.h5
+*.pkl
+*.pickle
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.dockerignore
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+.cache/
+*.bak

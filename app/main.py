@@ -5,12 +5,14 @@ Longitudinal Election Data Visualization & Insight System.
 """
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from fastapi import FastAPI, HTTPException, Query, Path as PathParam
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import pandas as pd
+import httpx
+from typing import Dict, Any
 
 from app.core.config import API_V1_PREFIX, API_TITLE, API_DESCRIPTION, API_VERSION, ELECTIONS_DIR
 from app.core.settings import settings
@@ -19,6 +21,11 @@ from app.data.validator import ValidationResult
 from app.data.schema_notes import REQUIRED_COLUMNS, OPTIONAL_COLUMNS
 from app.api.routes import map, trends, insights, compare
 from pydantic import BaseModel
+import sys
+from pathlib import Path as PathLibPath
+
+# Add RAG directory to path for imports
+sys.path.insert(0, str(PathLibPath(__file__).resolve().parent.parent / "rag-qa"))
 
 # Province display order (Nepali official names)
 PROVINCE_DISPLAY_ORDER = [
@@ -124,6 +131,25 @@ app = FastAPI(
     version=settings.api_version,
 )
 
+# Initialize RAG Service for couple searches
+rag_service = None
+try:
+    from unified_rag_service import UnifiedRAGService
+    voting_csv = str(ELECTIONS_DIR / "voting_centers.csv")
+    candidate_csvs = {"2082": str(ELECTIONS_DIR / "election_candidates-2082.csv")}
+    
+    if PathLibPath(voting_csv).exists() and PathLibPath(candidate_csvs["2082"]).exists():
+        rag_service = UnifiedRAGService(
+            voting_csv_path=voting_csv,
+            candidate_csv_paths=candidate_csvs
+        )
+        rag_service.initialize()
+        logger.info("RAG service initialized successfully for couple searches")
+    else:
+        logger.warning("RAG service data files not found, couple search unavailable")
+except Exception as e:
+    logger.warning(f"Failed to initialize RAG service: {e}")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -163,6 +189,76 @@ app.include_router(map.router, prefix=API_V1_PREFIX)
 app.include_router(trends.router, prefix=API_V1_PREFIX)
 app.include_router(insights.router, prefix=API_V1_PREFIX)
 app.include_router(compare.router, prefix=API_V1_PREFIX)
+
+
+# RAG Service Proxy Configuration
+RAG_SERVICE_URL = "http://rag-qa:8002"
+rag_client = httpx.AsyncClient(timeout=30.0)
+
+
+@app.get("/rag-api/health")
+async def rag_health_proxy():
+    """
+    Proxy to RAG service health check endpoint.
+    """
+    try:
+        response = await rag_client.get(f"{RAG_SERVICE_URL}/health")
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG health: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/v1/chat")
+async def rag_chat_proxy(request: Dict[str, Any]):
+    """
+    Proxy to RAG service chat endpoint.
+    
+    Allows frontend to access RAG chatbot through the main app on port 8000
+    instead of directly connecting to port 8002.
+    """
+    try:
+        response = await rag_client.post(
+            f"{RAG_SERVICE_URL}/api/v1/chat",
+            json=request,
+            headers={"Content-Type": "application/json"}
+        )
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG chat: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/v1/analytics")
+async def rag_analytics_proxy(request: Dict[str, Any]):
+    """
+    Proxy to RAG service analytics endpoint.
+    
+    Allows frontend to access RAG analytics through the main app on port 8000.
+    """
+    try:
+        response = await rag_client.post(
+            f"{RAG_SERVICE_URL}/api/v1/analytics",
+            json=request,
+            headers={"Content-Type": "application/json"}
+        )
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG analytics: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
+
+
+@app.post("/rag-api/api/reset_session")
+async def rag_reset_session_proxy():
+    """
+    Proxy to RAG service session reset endpoint.
+    """
+    try:
+        response = await rag_client.post(f"{RAG_SERVICE_URL}/api/reset_session")
+        return response.json()
+    except Exception as e:
+        logger.error(f"Error proxying to RAG session reset: {e}")
+        raise HTTPException(status_code=503, detail="RAG service unavailable")
 
 
 # Pydantic models for API responses
@@ -625,7 +721,7 @@ async def get_voting_centers(
     import logging
     logger = logging.getLogger(__name__)
     
-    voting_center_file = ELECTIONS_DIR / "voting-center-latest.csv"
+    voting_center_file = ELECTIONS_DIR / "voting_centers.csv"
 
     if not voting_center_file.exists():
         raise HTTPException(status_code=404, detail="Voting center data file not found")
@@ -743,6 +839,43 @@ async def get_voting_centers(
         "voting_centers": voting_centers,
         "summary": summary
     }
+
+
+class CoupleInfo(BaseModel):
+    """Couple candidate information."""
+    spouse_index: str
+    candidate_1: Dict[str, Any]
+    candidate_2: Dict[str, Any]
+
+
+class CouplesResponse(BaseModel):
+    """Response containing couple candidates."""
+    couples: List[CoupleInfo]
+    total_couples: int
+    answer: str
+
+
+@app.get(f"{API_V1_PREFIX}/couples", response_model=CouplesResponse)
+async def get_couple_candidates():
+    """
+    Get couple candidates (spouses running together).
+    
+    Returns information about couples where both spouses are candidates.
+    Uses RAG service for intelligent matching if available.
+    """
+    if rag_service is None:
+        return {
+            "couples": [],
+            "total_couples": 0,
+            "answer": "RAG service not available. Couple search feature is currently disabled."
+        }
+    
+    try:
+        result = rag_service.find_couple_candidates()
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching couple candidates: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch couple candidates")
 
 
 @app.get(f"{API_V1_PREFIX}/longitudinal/compare")

@@ -6,15 +6,20 @@ import React from 'react';
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, errorMessage: null };
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+    // Convert error to string immediately
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { hasError: true, errorMessage };
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('ErrorBoundary caught:', error, errorInfo);
+    // Ensure we have a string error message
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    this.setState({ errorMessage });
   }
 
   render() {

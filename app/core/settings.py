@@ -37,9 +37,12 @@ class Settings(BaseSettings):
     strict_validation: bool = False  # If True, fail on missing required columns
     log_warnings: bool = True  # Log warnings for missing optional columns
     
+    # LLM API Settings
+    deepseek_api_key: Optional[str] = None  # DeepSeek API key for LLM features
+    
     # CORS Settings (use specific origins when allow_credentials=True; "*" is rejected by browsers)
     # Set CORS_ORIGINS in .env for production, e.g. CORS_ORIGINS=https://your-domain.com,https://www.your-domain.com
-    cors_origins: list[str] = [
+    cors_origins: Union[str, list[str]] = [
         "http://localhost:3000", "http://127.0.0.1:3000",
         "http://localhost:5173", "http://127.0.0.1:5173",
         "http://165.22.215.152", "https://165.22.215.152",
@@ -59,7 +62,7 @@ class Settings(BaseSettings):
     
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: Optional[Union[str, list]]) -> Optional[Union[str, list]]:
+    def parse_cors_origins(cls, v: Optional[Union[str, list]]) -> Optional[list[str]]:
         """Parse CORS_ORIGINS from env (comma-separated string)."""
         if v is None:
             return None
@@ -70,6 +73,15 @@ class Settings(BaseSettings):
         if isinstance(v, list):
             return _parse_cors_origins(v)
         return v
+    
+    @field_validator("cors_origins", mode="after")
+    @classmethod
+    def ensure_cors_origins_list(cls, v: Optional[list[str]]) -> list[str]:
+        """Ensure cors_origins is always a list, return default if None."""
+        return v if v is not None else [
+            "http://localhost:3000", "http://127.0.0.1:3000",
+            "http://localhost:5173", "http://127.0.0.1:5173",
+        ]
 
 
 # Global settings instance
